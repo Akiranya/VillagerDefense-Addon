@@ -1,12 +1,13 @@
 package co.mcsky.villagedefensenhancement.modules;
 
 import lombok.Getter;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Monster;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootContext;
 import org.spongepowered.configurate.serialize.SerializationException;
@@ -78,20 +79,12 @@ public class SmartLoot implements Listener {
                                     .killer(player)
                                     .lootedEntity(entity)
                                     .build();
-                            Collection<ItemStack> itemStacks = ((Zombie) entity).getLootTable().populateLoot(random, lootContext);
+                            Collection<ItemStack> itemStacks = ((Monster) entity).getLootTable().populateLoot(random, lootContext);
                             itemStacks.forEach(item -> player.getInventory().addItem(item));
                         }
                     });
                 }
             }
-        }
-    }
-
-    @EventHandler
-    public void noDropsOnDeathByArcher(EntityDeathEvent event) {
-        if (event.getEntity().getLastDamageCause().getCause() == EntityDamageEvent.DamageCause.PROJECTILE) {
-            event.setDroppedExp(0);
-            event.getDrops().clear(); // TODO does it work?
         }
     }
 

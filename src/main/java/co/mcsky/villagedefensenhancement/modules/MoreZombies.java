@@ -21,9 +21,9 @@ public class MoreZombies implements Listener {
     @EventHandler
     public void onWaveStart(VillageWaveStartEvent event) {
         Arena arena = event.getArena();
-        int more = Math.max(64, event.getWaveNumber() * event.getWaveNumber() - 100);
-        for (int i = 0; i < more; i++) {
-            switch (rd.nextInt(10)) {
+        int extraAmount = Math.max(32, event.getWaveNumber() * event.getWaveNumber() - 100);
+        for (int i = 0; i < extraAmount; i++) {
+            switch (rd.nextInt(5)) {
                 case 0:
                     arena.spawnFastZombie(rd);
                     break;
@@ -35,12 +35,6 @@ public class MoreZombies implements Listener {
                     break;
                 case 3:
                     arena.spawnKnockbackResistantZombies(rd);
-                    break;
-                case 4:
-                    arena.spawnHalfInvisibleZombie(rd);
-                    break;
-                case 5:
-                    arena.spawnBabyZombie(rd);
                     break;
                 default:
                     break;

@@ -1,7 +1,6 @@
 package co.mcsky.villagedefensenhancement.modules;
 
 import com.destroystokyo.paper.event.entity.ProjectileCollideEvent;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -39,10 +38,8 @@ public class CollisionFixer implements Listener {
     public void onProjectileCollide(ProjectileCollideEvent event) {
         // Don't cancel collision for wither skull
         if (event.getEntity().getType() == EntityType.WITHER_SKULL) return;
-
         if (noCollisionEntities.contains(event.getCollidedWith().getType())) {
             event.setCancelled(true);
-            Bukkit.getLogger().info("Penetrated!");
         }
     }
 

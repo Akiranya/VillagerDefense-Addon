@@ -32,6 +32,7 @@ public class VillageDefenseEnhancement extends JavaPlugin {
     private SmartLoot smartLoot;
     private SmartKitSelection smartKitSelection;
     private BetterVillager betterVillager;
+    private BetterUpgrade betterUpgrade;
     private CollisionFixer collisionFixer;
     private InfiniteAnvil infiniteAnvil;
     private MoreZombies moreZombies;
@@ -77,6 +78,7 @@ public class VillageDefenseEnhancement extends JavaPlugin {
         smartLoot = new SmartLoot();
         smartKitSelection = new SmartKitSelection();
         betterVillager = new BetterVillager();
+        betterUpgrade = new BetterUpgrade();
         collisionFixer = new CollisionFixer();
         infiniteAnvil = new InfiniteAnvil();
         moreZombies = new MoreZombies();

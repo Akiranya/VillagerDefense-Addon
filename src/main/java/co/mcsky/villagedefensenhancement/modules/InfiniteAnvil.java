@@ -34,7 +34,6 @@ public class InfiniteAnvil implements Listener {
             int oldLevel = event.getOldLevel();
             if (event.getNewLevel() < oldLevel) {
                 event.getPlayer().setLevel(oldLevel);
-                plugin.getLogger().info("Level restored!");
             }
         }
     }
