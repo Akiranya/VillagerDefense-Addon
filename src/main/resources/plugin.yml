@@ -1,21 +1,8 @@
-name: VillageDefenseAddon
-main: co.mcsky.VillageDefenseAddon.VillageDefenseAddon
-version: 1.0
-depend: [VillageDefense]
+name: VillageDefenseEnhancement
+main: co.mcsky.villagedefensenhancement.VillageDefenseEnhancement
+version: 2.0
 api-version: 1.13
-commands:
-  usermanager:
-    description: user manager
-    usage: /<command> <view|delete> [<player|all>]
-    permission: villageaddon.usermanager
-    aliases: [um]
-  actmanager:
-    description: act manager
-    usage: /<command> <arena> <join|leave> <player|all>
-    permission: villageaddon.actmanager
-    aliases: [actm]
-  specialmob:
-    description: spawn special mobs
-    usage: /<command> <type> [amount]
-    permission: villageaddon.specialmob
-    aliases: [smob]
+depend: [VillageDefense]
+author: Nailm
+prefix: VillageDefenseEnhancement
+website: https://mimaru.me

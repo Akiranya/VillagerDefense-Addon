@@ -1,0 +1,5 @@
+inventory-manager:
+  cannot-pickup: 不能捡起该物品.
+  cannot-drop: 不能丢弃该物品.
+smart-loot:
+  exp-gained: 你获得了 {exp} 经验!
