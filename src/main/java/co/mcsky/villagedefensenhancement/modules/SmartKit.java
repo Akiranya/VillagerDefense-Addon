@@ -12,12 +12,12 @@ import java.util.List;
 
 import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.plugin;
 
-public class SmartKitSelection implements Listener {
+public class SmartKit implements Listener {
 
     private int levelRequired;
     private List<String> blacklist;
 
-    public SmartKitSelection() {
+    public SmartKit() {
         try {
             levelRequired = plugin.config.node("better-kit-selection", "premium-kit-level-required").getInt(12);
             blacklist = plugin.config.node("better-kit-selection", "blacklist")
@@ -31,11 +31,11 @@ public class SmartKitSelection implements Listener {
     }
 
     @EventHandler
-    public void cancelSelection(VillagePlayerChooseKitEvent e) {
+    public void onPlayerChooseKit(VillagePlayerChooseKitEvent e) {
         String kit = e.getKit().getName();
         Player player = e.getPlayer();
 
-        // Do not allow to select kit in blacklist
+        // Do not allow to select kits in the blacklist
         for (String s : blacklist) {
             if (kit.contains(s)) {
                 e.setCancelled(true);
@@ -44,7 +44,7 @@ public class SmartKitSelection implements Listener {
             }
         }
 
-        // Make PremiumKit like a LevelKit!
+        // Make (all) PremiumKit like LevelKit!
         if (e.getKit() instanceof PremiumKit) {
             int userLevel = StatsStorage.getUserStats(player, StatsStorage.StatisticType.LEVEL);
             if (userLevel < levelRequired && !player.isOp()) {

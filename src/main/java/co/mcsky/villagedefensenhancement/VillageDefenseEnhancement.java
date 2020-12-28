@@ -31,10 +31,8 @@ public class VillageDefenseEnhancement extends JavaPlugin {
     public PaperCommandManager commandManager;
 
     private SmartLoot smartLoot;
-    private SmartKitSelection smartKitSelection;
+    private SmartKit smartKitSelection;
     private BetterVillager betterVillager;
-    private BetterUpgrade betterUpgrade;
-    private CollisionFixer collisionFixer;
     private InfiniteAnvil infiniteAnvil;
     private MoreZombies moreZombies;
 
@@ -75,12 +73,20 @@ public class VillageDefenseEnhancement extends JavaPlugin {
         config.save();
     }
 
+    public String getMessage(CommandSender sender, String key, Object... replacements) {
+        if (replacements.length == 0) {
+            return lang.getConfig(sender).get(key);
+        } else {
+            return lang.getConfig(sender).get(key, Arrays.stream(replacements)
+                                                         .map(Object::toString)
+                                                         .toArray(String[]::new));
+        }
+    }
+
     private void initializeModules() {
         smartLoot = new SmartLoot();
-        smartKitSelection = new SmartKitSelection();
+        smartKitSelection = new SmartKit();
         betterVillager = new BetterVillager();
-        betterUpgrade = new BetterUpgrade();
-        collisionFixer = new CollisionFixer();
         infiniteAnvil = new InfiniteAnvil();
         moreZombies = new MoreZombies();
 
@@ -116,29 +122,6 @@ public class VillageDefenseEnhancement extends JavaPlugin {
         commandManager.registerDependency(InventoryManager.class, invManager);
         commandManager.registerDependency(SmartLoot.class, smartLoot);
         commandManager.registerCommand(new CommandHandler());
-    }
-
-    /**
-     * Get a message from a language config for a certain sender
-     *
-     * @param sender       The sender to get the string for.
-     * @param key          The language key in the config
-     * @param replacements An option array for replacements. (2n)-th will be the
-     *                     placeholder, (2n+1)-th the value. Placeholders have
-     *                     to be surrounded by percentage signs: {placeholder}
-     *
-     * @return The string from the config which matches the sender's language
-     * (or the default one) with the replacements replaced (or an error message,
-     * never null)
-     */
-    public String getMessage(CommandSender sender, String key, Object... replacements) {
-        if (replacements.length == 0) {
-            return lang.getConfig(sender).get(key);
-        } else {
-            return lang.getConfig(sender).get(key, Arrays.stream(replacements)
-                                                         .map(Object::toString)
-                                                         .toArray(String[]::new));
-        }
     }
 
 }
