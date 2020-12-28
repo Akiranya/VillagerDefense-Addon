@@ -9,6 +9,9 @@ import java.util.Random;
 
 import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.plugin;
 
+/**
+ * This class modifies the mechanism of spawning zombies.
+ */
 public class MoreZombies implements Listener {
 
     private final Random rd;
@@ -18,12 +21,15 @@ public class MoreZombies implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
+    /**
+     * Spawn more zombies
+     */
     @EventHandler
     public void onWaveStart(VillageWaveStartEvent event) {
         Arena arena = event.getArena();
         int extraAmount = Math.max(32, event.getWaveNumber() * event.getWaveNumber() - 100);
         for (int i = 0; i < extraAmount; i++) {
-            switch (rd.nextInt(5)) {
+            switch (rd.nextInt(4)) {
                 case 0:
                     arena.spawnFastZombie(rd);
                     break;
