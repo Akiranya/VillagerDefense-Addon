@@ -49,8 +49,11 @@ public class SmartLoot implements Listener {
         syncWithConfig(() -> this.damageLowerBound = damageLowerBound);
     }
 
+    /**
+     * Give exp to attacker on each damage.
+     */
     @EventHandler
-    public void giveExpToAttacker(EntityDamageByEntityEvent event) {
+    public void onEntityDamage(EntityDamageByEntityEvent event) {
         Entity damager = event.getDamager();
         Entity entity = event.getEntity();
         if (entity instanceof Monster && event.getDamage() > damageLowerBound) {

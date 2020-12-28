@@ -169,6 +169,16 @@ public class BetterVillager implements Listener {
     }
 
     /**
+     * Prevent wolf from sitting.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerRightClickWolf(PlayerInteractEntityEvent event) {
+        if (event.getRightClicked() instanceof Wolf) {
+            event.setCancelled(true);
+        }
+    }
+
+    /**
      * Projectiles from players can pass through friendly creatures.
      */
     @EventHandler

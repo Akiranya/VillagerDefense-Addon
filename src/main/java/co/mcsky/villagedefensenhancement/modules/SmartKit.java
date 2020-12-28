@@ -1,17 +1,25 @@
 package co.mcsky.villagedefensenhancement.modules;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.potion.PotionEffectType;
 import org.spongepowered.configurate.serialize.SerializationException;
 import plugily.projects.villagedefense.api.StatsStorage;
 import plugily.projects.villagedefense.api.event.player.VillagePlayerChooseKitEvent;
 import plugily.projects.villagedefense.kits.basekits.PremiumKit;
+import plugily.projects.villagedefense.kits.level.RunnerKit;
 
 import java.util.List;
 
+import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.api;
 import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.plugin;
 
+/**
+ * A class improving stuff about kits.
+ */
 public class SmartKit implements Listener {
 
     private int levelRequired;
@@ -53,6 +61,18 @@ public class SmartKit implements Listener {
                                                      "level_required", levelRequired,
                                                      "current_level", userLevel));
             }
+        }
+    }
+
+    /**
+     * Remove Runner's potion effects if the player is not of Runner
+     */
+    @EventHandler
+    public void onPlayerPostRespawn(PlayerPostRespawnEvent event) {
+        Player player = event.getPlayer();
+        if (!(api.getUserManager().getUser(player).getKit() instanceof RunnerKit)) {
+            player.removePotionEffect(PotionEffectType.SPEED);
+            player.removePotionEffect(PotionEffectType.JUMP);
         }
     }
 
