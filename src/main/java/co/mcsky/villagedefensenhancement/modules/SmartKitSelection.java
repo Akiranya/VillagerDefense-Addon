@@ -50,8 +50,8 @@ public class SmartKitSelection implements Listener {
             if (userLevel < levelRequired && !player.isOp()) {
                 e.setCancelled(true);
                 player.sendMessage(plugin.getMessage(player, "smart-kit-selection.premium-level-required",
-                                                     "level_required", String.valueOf(levelRequired),
-                                                     "current_level", String.valueOf(userLevel)));
+                                                     "level_required", levelRequired,
+                                                     "current_level", userLevel));
             }
         }
     }

@@ -60,7 +60,7 @@ public class SmartLoot implements Listener {
                 Player player = (Player) damager;
                 player.giveExp(meleeExp);
                 player.sendActionBar(plugin.getMessage(damager, "smart-loot.exp-gained",
-                                                       "exp", String.valueOf(meleeExp)));
+                                                       "exp", meleeExp));
             } else if (damager instanceof Projectile) {
                 // Give exp to ranged attacker
 
@@ -69,7 +69,7 @@ public class SmartLoot implements Listener {
                     Player player = (Player) projectile.getShooter();
                     player.giveExp(rangeExp);
                     player.sendActionBar(plugin.getMessage(player, "smart-loot.exp-gained",
-                                                           "exp", String.valueOf(rangeExp)));
+                                                           "exp", rangeExp));
 
                     // Give loots if the damaged zombie is dead
                     plugin.getServer().getScheduler().runTask(plugin, () -> {

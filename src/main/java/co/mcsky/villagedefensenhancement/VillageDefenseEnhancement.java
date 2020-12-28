@@ -17,6 +17,7 @@ import plugily.projects.villagedefense.arena.ArenaRegistry;
 import plugily.projects.villagedefense.kits.KitRegistry;
 import plugily.projects.villagedefense.kits.basekits.FreeKit;
 
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -120,20 +121,24 @@ public class VillageDefenseEnhancement extends JavaPlugin {
     /**
      * Get a message from a language config for a certain sender
      *
-     * @param sender       The sender to get the string for. (Language is based
-     *                     on this)
+     * @param sender       The sender to get the string for.
      * @param key          The language key in the config
      * @param replacements An option array for replacements. (2n)-th will be the
      *                     placeholder, (2n+1)-th the value. Placeholders have
-     *                     to be surrounded by percentage signs: %placeholder%
+     *                     to be surrounded by percentage signs: {placeholder}
      *
      * @return The string from the config which matches the sender's language
      * (or the default one) with the replacements replaced (or an error message,
      * never null)
      */
-    public String getMessage(CommandSender sender, String key,
-                             String... replacements) {
-        return lang.getConfig(sender).get(key, replacements);
+    public String getMessage(CommandSender sender, String key, Object... replacements) {
+        if (replacements.length == 0) {
+            return lang.getConfig(sender).get(key);
+        } else {
+            return lang.getConfig(sender).get(key, Arrays.stream(replacements)
+                                                         .map(Object::toString)
+                                                         .toArray(String[]::new));
+        }
     }
 
 }
