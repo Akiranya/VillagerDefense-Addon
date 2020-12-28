@@ -6,18 +6,17 @@ import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.spongepowered.configurate.serialize.SerializationException;
 import plugily.projects.villagedefense.api.event.game.VillageGameStartEvent;
-
-import java.util.List;
 
 import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.plugin;
 
@@ -27,23 +26,11 @@ public class BetterVillager implements Listener {
     private final int particleCount;
 
     private VillageGameStartEvent gameEvent;
-    private List<String> cryMessages;
-    private int currentMessageIndex;
 
     public BetterVillager() {
         // Configuration values
         particleCount = plugin.config.node("better-villager", "particle-count").getInt(16);
         longestSightLine = plugin.config.node("better-villager", "longest-sight-line").getInt(32);
-        try {
-            cryMessages = plugin.config.node("better-villager", "cry-messages")
-                                       .getList(String.class, () ->
-                                               List.of("村民 -> 有只僵尸在打我，快来人救救我！",
-                                                       "村民 -> 我快被僵尸打死啦，快来人呐！",
-                                                       "村民 -> 僵尸大军冲进来了，救命呐！"));
-        } catch (SerializationException e) {
-            plugin.getLogger().severe(e.getMessage());
-            return;
-        }
 
         // Register this event
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -67,8 +54,9 @@ public class BetterVillager implements Listener {
             Entity damager = event.getDamager();
             if (damager instanceof Monster && event.getFinalDamage() > 1) {
                 ((Villager) entity).addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 10 * 20, 1));
-                String message = cryMessages.get(currentMessageIndex++ % cryMessages.size());
-                gameEvent.getArena().getPlayers().forEach(p -> p.sendActionBar(message));
+                for (Player player : gameEvent.getArena().getPlayers()) {
+                    player.sendActionBar(plugin.getMessage(player, "better-villager.cry-message", "villager", entity.getCustomName()));
+                }
             }
         }
     }
@@ -82,22 +70,29 @@ public class BetterVillager implements Listener {
         if (entity instanceof Villager) {
             Villager v = (Villager) entity;
             // Make it unable to open doors
+            v.getPathfinder().setCanPassDoors(false);
             v.getPathfinder().setCanOpenDoors(false);
         }
     }
 
     /**
      * Allow players to leash villagers.
+     * <p>
+     * This mimics the vanilla behaviors.
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onEntityLeash(PlayerInteractEntityEvent event) {
         Entity rightClicked = event.getRightClicked();
         Player player = event.getPlayer();
         if (rightClicked instanceof Villager) {
+            ItemStack lead = new ItemStack(Material.LEAD);
             try {
                 if (((Villager) rightClicked).getLeashHolder() == player) {
                     // Unleash and return
+
+                    player.getOpenInventory().close(); // Close the shop menu
                     ((Villager) rightClicked).setLeashHolder(null);
+                    rightClicked.getWorld().dropItem(rightClicked.getLocation(), lead);
                     return;
                 }
             } catch (IllegalStateException ignored) {
@@ -105,13 +100,18 @@ public class BetterVillager implements Listener {
 
             if (player.getInventory().getItemInMainHand().getType() == Material.LEAD) {
                 // Leash it
-                plugin.getServer().getScheduler().runTask(plugin, () -> ((Villager) rightClicked).setLeashHolder(player));
+
+                player.getOpenInventory().close(); // Close the shop menu
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    player.getInventory().remove(lead);
+                    ((Villager) rightClicked).setLeashHolder(player);
+                });
             }
         }
     }
 
     /**
-     * Allow players to ride villagers/golems/wolves and control them!
+     * Allow players to control villagers/golems/wolves when riding!
      */
     @EventHandler
     public void onPlayerPoint(PlayerInteractEvent event) {

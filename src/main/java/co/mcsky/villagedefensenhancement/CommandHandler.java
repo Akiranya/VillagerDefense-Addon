@@ -26,14 +26,12 @@ public class CommandHandler extends BaseCommand {
     }
 
     @Subcommand("reload")
-    @Description("重新载入")
     public void reload(CommandSender sender) {
         plugin.reload();
         sender.sendMessage("已重新载入!");
     }
 
     @Subcommand("loot")
-    @Description("设置经验奖励")
     public class SmartLootCommand extends BaseCommand {
 
         @Subcommand("melee")
@@ -65,7 +63,6 @@ public class CommandHandler extends BaseCommand {
     }
 
     @Subcommand("inv")
-    @Description("设置可拾起/丢弃的物品")
     public class InvManagerCommand extends BaseCommand {
 
         @Subcommand("on")
@@ -110,20 +107,19 @@ public class CommandHandler extends BaseCommand {
         public void pickupAddWhitelist(@Flags("itemheld") Player player) {
             player.sendMessage("-------------------------");
             invManager.pickupAddWhitelist(player.getInventory().getItemInMainHand().getType());
-            invManager.dropListShow(player);
+            invManager.pickupListShow(player);
         }
 
         @Subcommand("pickup remove")
         public void pickupRemoveWhitelist(@Flags("itemheld") Player player) {
             player.sendMessage("-------------------------");
             invManager.pickupRemoveWhitelist(player.getInventory().getItemInMainHand().getType());
-            invManager.dropListShow(player);
+            invManager.pickupListShow(player);
         }
 
     }
 
     @Subcommand("game")
-    @Description("调度玩家")
     public class GameManagerCommand extends BaseCommand {
 
         @Subcommand("forcejoin")
