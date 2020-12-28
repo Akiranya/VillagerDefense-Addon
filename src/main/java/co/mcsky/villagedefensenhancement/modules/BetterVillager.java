@@ -45,7 +45,7 @@ public class BetterVillager implements Listener {
     public BetterVillager() {
         // Spawn healing potions when upgrading a entity
         taskTimer = new HashMap<>();
-        healPotionCount = plugin.config.node("better-villager", "heal-potion-count").getInt(5);
+        healPotionCount = plugin.config.node("better-villager", "heal-potion-count").getInt(10);
         // Allow players to control friendly creatures
         particleCount = plugin.config.node("better-villager", "particle-count").getInt(16);
         longestSightLine = plugin.config.node("better-villager", "longest-sight-line").getInt(32);

@@ -15,8 +15,8 @@ public class InfiniteAnvil implements Listener {
 
     public InfiniteAnvil() {
         // Configuration values
-        unbroken = plugin.config.node("unlimited-anvil", "unbroken").getBoolean(true);
-        noCost = plugin.config.node("unlimited-anvil", "no-cost").getBoolean(true);
+        unbroken = plugin.config.node("inf-anvil", "unbroken").getBoolean(true);
+        noCost = plugin.config.node("inf-anvil", "no-cost").getBoolean(true);
 
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }

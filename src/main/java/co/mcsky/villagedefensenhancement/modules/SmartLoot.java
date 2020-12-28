@@ -29,9 +29,9 @@ public class SmartLoot implements Listener {
         random = new Random();
 
         // Configuration values
-        meleeExp = plugin.config.node("archer-enhancement", "melee-exp").getInt(1);
-        rangeExp = plugin.config.node("archer-enhancement", "range-exp").getInt(2);
-        damageLowerBound = plugin.config.node("archer-enhancement", "damage-lower-bound").getDouble(2D);
+        meleeExp = plugin.config.node("smart-loot", "melee-exp").getInt(1);
+        rangeExp = plugin.config.node("smart-loot", "range-exp").getInt(2);
+        damageLowerBound = plugin.config.node("smart-loot", "damage-lower-bound").getDouble(2D);
 
         // Register this listener
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -94,9 +94,9 @@ public class SmartLoot implements Listener {
     private void syncWithConfig(Runnable update) {
         update.run();
         try {
-            plugin.config.node("archer-enhancement", "melee-exp").set(meleeExp);
-            plugin.config.node("archer-enhancement", "range-exp").set(rangeExp);
-            plugin.config.node("archer-enhancement", "damage-lower-bound").set(damageLowerBound);
+            plugin.config.node("smart-loot", "melee-exp").set(meleeExp);
+            plugin.config.node("smart-loot", "range-exp").set(rangeExp);
+            plugin.config.node("smart-loot", "damage-lower-bound").set(damageLowerBound);
         } catch (SerializationException e) {
             plugin.getLogger().severe(e.getMessage());
         }

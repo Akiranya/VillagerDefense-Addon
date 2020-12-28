@@ -3,9 +3,10 @@ inventory-manager:
   cannot-drop: "不能丢弃该物品."
 smart-loot:
   exp-gained: "你获得了 {exp} 经验!"
-smart-kit-selection:
+smart-kit:
   premium-level-required: "你需要达到 {level_required} 级才可以选择顶级职业 (当前等级: {current_level})"
   kit-in-blacklist: "你不能选择这个职业!"
+  tag-format: "&f[&a{kit}&f]"
 better-villager:
   cry-message: "{villager} -> 有只僵尸在打我,快来人救救我!"
   cannot-find-path: "无法前往目的地..."
