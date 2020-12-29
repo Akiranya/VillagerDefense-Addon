@@ -28,36 +28,67 @@ public class CommandHandler extends BaseCommand {
     @Subcommand("reload")
     public void reload(CommandSender sender) {
         plugin.reload();
-        sender.sendMessage("已重新载入!");
+        sender.sendMessage(plugin.getName() + " 已重新载入!");
+    }
+
+    @Subcommand("forcejoin")
+    @CommandCompletion("@arenas all|@players")
+    public void joinPlayer(CommandSender sender, Arena arena, VillagerPlayer players) {
+        gameManager.sendPlayerToArena(arena, players.getValue());
+    }
+
+    @Subcommand("forceleave")
+    @CommandCompletion("all|@players")
+    public void leavePlayer(CommandSender sender, VillagerPlayer players) {
+        gameManager.forcePlayerQuit(players.getValue());
     }
 
     @Subcommand("loot")
     public class SmartLootCommand extends BaseCommand {
 
-        @Subcommand("melee")
-        public void viewMelee(CommandSender sender) {
-            sender.sendMessage("当前近战攻击获得经验: " + smartLoot.getMeleeExp());
+        @Subcommand("meleeExp")
+        @CommandCompletion("@nothing")
+        public void meleeExp(CommandSender sender, @Optional Integer exp) {
+            if (exp != null) {
+                smartLoot.setMeleeExp(exp);
+            }
+            sender.sendMessage("近战攻击获得经验: " + smartLoot.getMeleeExp());
         }
 
-        @Subcommand("melee set")
+        @Subcommand("meleeLevelMultiplier")
         @CommandCompletion("@nothing")
-        public void setMeleeExp(CommandSender sender, int exp) {
-            smartLoot.setMeleeExp(exp);
-            sender.sendMessage("已设置近战攻击获得经验: " + exp);
+        public void meleeLevelMultiplier(CommandSender sender, @Optional Integer multiplier) {
+            if (multiplier != null) {
+                smartLoot.setMeleeLevelMultiplier(multiplier);
+            }
+            sender.sendMessage("近战攻击获得经验乘数(职业): " + smartLoot.getMeleeLevelMultiplier());
         }
 
-        @Subcommand("range set")
+        @Subcommand("rangeExp")
         @CommandCompletion("@nothing")
-        public void setRangeExp(CommandSender sender, int exp) {
-            smartLoot.setRangeExp(exp);
-            sender.sendMessage("已设置远程攻击获得经验: " + exp);
+        public void rangeExp(CommandSender sender, @Optional Integer exp) {
+            if (exp != null) {
+                smartLoot.setRangeExp(exp);
+            }
+            sender.sendMessage("远程攻击获得经验: " + smartLoot.getRangeExp());
         }
 
-        @Subcommand("bound set")
+        @Subcommand("rangeLevelMultiplier")
         @CommandCompletion("@nothing")
-        public void setDamageLowerBound(CommandSender sender, int lowerBound) {
-            smartLoot.setDamageLowerBound(lowerBound);
-            sender.sendMessage("已设置获得经验所需最小伤害: " + lowerBound);
+        public void rangeLevelMultiplier(CommandSender sender, @Optional Integer multiplier) {
+            if (multiplier != null) {
+                smartLoot.setRangeLevelMultiplier(multiplier);
+            }
+            sender.sendMessage("远程攻击获得经验乘数(职业): " + smartLoot.getRangeLevelMultiplier());
+        }
+
+        @Subcommand("bound")
+        @CommandCompletion("@nothing")
+        public void damageLowerBonud(CommandSender sender, @Optional Integer lowerBound) {
+            if (lowerBound != null) {
+                smartLoot.setDamageLowerBound(lowerBound);
+            }
+            sender.sendMessage("获得经验所需最小伤害: " + smartLoot.getDamageLowerBound());
         }
 
     }
@@ -115,23 +146,6 @@ public class CommandHandler extends BaseCommand {
             player.sendMessage("-------------------------");
             invManager.pickupRemoveWhitelist(player.getInventory().getItemInMainHand().getType());
             invManager.pickupListShow(player);
-        }
-
-    }
-
-    @Subcommand("game")
-    public class GameManagerCommand extends BaseCommand {
-
-        @Subcommand("forcejoin")
-        @CommandCompletion("@arenas @players")
-        public void joinPlayer(CommandSender sender, Arena arena, VillagerPlayer players) {
-            gameManager.sendPlayerToArena(arena, players.getValue());
-        }
-
-        @Subcommand("forceleave")
-        @CommandCompletion("@players")
-        public void leavePlayer(CommandSender sender, VillagerPlayer players) {
-            gameManager.forcePlayerQuit(players.getValue());
         }
 
     }

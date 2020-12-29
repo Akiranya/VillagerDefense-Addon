@@ -110,7 +110,7 @@ public class VillageDefenseEnhancement extends JavaPlugin {
         commandManager.enableUnstableAPI("help");
         commandManager.getCommandCompletions().registerCompletion("arenas", c -> ArenaRegistry.getArenas()
                                                                                               .stream()
-                                                                                              .map(Arena::getMapName)
+                                                                                              .map(Arena::getId)
                                                                                               .collect(Collectors.toList()));
         commandManager.getCommandContexts().registerContext(VillagerPlayer.class, VillagerPlayer.getContextResolver());
         commandManager.getCommandContexts().registerContext(Arena.class, c -> {

@@ -8,9 +8,8 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.spongepowered.configurate.serialize.SerializationException;
-import plugily.projects.villagedefense.api.event.game.VillageGameStartEvent;
-import plugily.projects.villagedefense.api.event.game.VillageGameStopEvent;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -21,13 +20,10 @@ import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.plugin
 
 public class InventoryManager implements Listener {
 
-    private final PlayerActionListener playerActionListener;
     private Set<Material> dropWhitelist;
     private Set<Material> pickupWhitelist;
 
     public InventoryManager() {
-        playerActionListener = new PlayerActionListener();
-
         // Configuration values
         try {
             dropWhitelist = new HashSet<>(plugin.config.node("inventory-manager", "drop-whitelist").getList(Material.class, List.of(Material.ROTTEN_FLESH)));
@@ -39,6 +35,7 @@ public class InventoryManager implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
+/*
     @EventHandler
     public void onGameStart(VillageGameStartEvent event) {
         enable();
@@ -47,6 +44,32 @@ public class InventoryManager implements Listener {
     @EventHandler
     public void onGameEnd(VillageGameStopEvent event) {
         disable();
+    }
+*/
+
+    @EventHandler
+    public void onPickupItem(PlayerAttemptPickupItemEvent event) {
+        Player player = event.getPlayer();
+        if (!player.isOp() || !pickupWhitelist.contains(event.getItem().getItemStack().getType())) {
+            event.setCancelled(true);
+            player.sendActionBar(plugin.getMessage(player, "inventory-manager.cannot-pickup"));
+        }
+    }
+
+    @EventHandler
+    public void onDropItem(PlayerDropItemEvent event) {
+        Player player = event.getPlayer();
+        if (!player.isOp() || !dropWhitelist.contains(event.getItemDrop().getItemStack().getType())) {
+            event.setCancelled(true);
+            player.sendActionBar(plugin.getMessage(player, "inventory-manager.cannot-drop"));
+        }
+    }
+
+    @EventHandler
+    public void onOpenHopper(PlayerInteractEvent event) {
+        if (!event.getPlayer().isOp() && event.getClickedBlock() != null && event.getClickedBlock().getType() == Material.HOPPER) {
+            event.setCancelled(true);
+        }
     }
 
     public void dropAddWhitelist(Material mat) {
@@ -75,13 +98,13 @@ public class InventoryManager implements Listener {
 
     public void enable() {
         // Register this listener
-        plugin.getServer().getPluginManager().registerEvents(playerActionListener, plugin);
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         plugin.getLogger().info("InventoryManager is on!");
     }
 
     public void disable() {
         // Unregister this listener
-        HandlerList.unregisterAll(playerActionListener);
+        HandlerList.unregisterAll(this);
         plugin.getLogger().info("InventoryManager is off!");
     }
 
@@ -94,28 +117,6 @@ public class InventoryManager implements Listener {
             plugin.getLogger().severe(e.getMessage());
         }
         plugin.config.save();
-    }
-
-    private class PlayerActionListener implements Listener {
-
-        @EventHandler
-        public void onPickupItem(PlayerAttemptPickupItemEvent event) {
-            if (!pickupWhitelist.contains(event.getItem().getItemStack().getType())) {
-                event.setCancelled(true);
-                Player player = event.getPlayer();
-                player.sendActionBar(plugin.getMessage(player, "inventory-manager.cannot-pickup"));
-            }
-        }
-
-        @EventHandler
-        public void onDropItem(PlayerDropItemEvent event) {
-            if (!dropWhitelist.contains(event.getItemDrop().getItemStack().getType())) {
-                event.setCancelled(true);
-                Player player = event.getPlayer();
-                player.sendActionBar(plugin.getMessage(player, "inventory-manager.cannot-drop"));
-            }
-        }
-
     }
 
 }

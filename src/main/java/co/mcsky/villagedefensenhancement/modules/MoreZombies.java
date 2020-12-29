@@ -41,18 +41,15 @@ public class MoreZombies implements Listener {
         Arena arena = event.getArena();
         int extraAmount = Math.max(extraZombieBase, event.getWaveNumber() * event.getWaveNumber() - 64);
         for (int i = 0; i < extraAmount; i++) {
-            switch (rd.nextInt(4)) {
+            switch (rd.nextInt(3)) {
                 case 0:
-                    arena.spawnFastZombie(rd);
-                    break;
-                case 1:
                     arena.spawnHardZombie(rd);
                     break;
-                case 2:
+                case 1:
                     arena.spawnSoftHardZombie(rd);
                     break;
-                case 3:
-                    arena.spawnKnockbackResistantZombies(rd);
+                case 2:
+                    arena.spawnHalfInvisibleZombie(rd);
                     break;
                 default:
                     break;
@@ -64,17 +61,14 @@ public class MoreZombies implements Listener {
     public void onZombieSpawn(CreatureSpawnEvent event) {
         LivingEntity entity = event.getEntity();
         EntityEquipment equipment = entity.getEquipment();
-        if (entity instanceof Zombie && equipment != null) {
+        if (entity instanceof Zombie && ((Zombie) entity).isAdult() && equipment != null) {
             if (rd.nextDouble() <= netherProbability) {
                 equipment.setHelmet(new ItemStack(Material.NETHERITE_HELMET));
                 equipment.setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));
                 equipment.setLeggings(new ItemStack(Material.NETHERITE_LEGGINGS));
                 equipment.setBoots(new ItemStack(Material.NETHERITE_BOOTS));
                 equipment.setItemInMainHand(new ItemStack(Material.NETHERITE_SHOVEL));
-                return;
-            }
-
-            if (rd.nextDouble() <= drownedProbability) {
+            } else if (rd.nextDouble() <= drownedProbability) {
                 ((Zombie) entity).setConversionTime(0);
             }
         }

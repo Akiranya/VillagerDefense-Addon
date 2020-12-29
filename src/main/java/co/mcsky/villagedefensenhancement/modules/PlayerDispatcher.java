@@ -13,15 +13,28 @@ public class PlayerDispatcher {
     }
 
     public void sendPlayerToArena(Arena arena, Set<Player> players) {
-        players.forEach(p -> ArenaManager.joinAttempt(p, arena));
+        for (Player player : players) {
+            Arena tempArena = ArenaRegistry.getArena(player);
+            if (tempArena == null) {
+                // The player is not in any arena
+
+                ArenaManager.joinAttempt(player, arena);
+            } else if (tempArena != arena) {
+                // The player is in another arena
+
+                ArenaManager.leaveAttempt(player, tempArena);
+                ArenaManager.joinAttempt(player, arena);
+            }
+        }
     }
 
     public void forcePlayerQuit(Set<Player> players) {
-        players.forEach(p -> {
-            Arena arena = ArenaRegistry.getArena(p);
-            if (arena != null)
-                ArenaManager.leaveAttempt(p, arena);
-        });
+        for (Player player : players) {
+            Arena arena = ArenaRegistry.getArena(player);
+            if (arena != null) {
+                ArenaManager.leaveAttempt(player, arena);
+            }
+        }
     }
 
 }

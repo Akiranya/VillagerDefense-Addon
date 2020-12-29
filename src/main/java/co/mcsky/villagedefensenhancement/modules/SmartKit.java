@@ -12,6 +12,7 @@ import plugily.projects.villagedefense.api.StatsStorage;
 import plugily.projects.villagedefense.api.event.game.VillageGameLeaveAttemptEvent;
 import plugily.projects.villagedefense.api.event.game.VillageGameStopEvent;
 import plugily.projects.villagedefense.api.event.player.VillagePlayerChooseKitEvent;
+import plugily.projects.villagedefense.kits.basekits.Kit;
 import plugily.projects.villagedefense.kits.basekits.PremiumKit;
 
 import java.util.List;
@@ -29,9 +30,9 @@ public class SmartKit implements Listener {
 
     public SmartKit() {
         try {
+            noTagPlayers = plugin.config.node("smart-kit", "no-tag-players").getList(String.class, () -> List.of("ChesNez"));
             levelRequired = plugin.config.node("smart-kit", "premium-kit-level-required").getInt(12);
             blacklist = plugin.config.node("smart-kit", "blacklist").getList(String.class, () -> List.of("骑士"));
-            noTagPlayers = plugin.config.node("smart-kit", "no-tag-players").getList(String.class, () -> List.of("ChesNez"));
         } catch (SerializationException e) {
             plugin.getLogger().severe(e.getMessage());
         }
@@ -41,33 +42,38 @@ public class SmartKit implements Listener {
     }
 
     @EventHandler
-    public void onPlayerChooseKit(VillagePlayerChooseKitEvent e) {
-        String kit = e.getKit().getName();
-        Player player = e.getPlayer();
+    public void onPlayerChooseKit(VillagePlayerChooseKitEvent event) {
+        Kit kit = event.getKit();
+        Player player = event.getPlayer();
+
+        if (!kit.isUnlockedByPlayer(player)) {
+            return;
+        }
 
         // Do not allow to select kits in the blacklist
         for (String s : blacklist) {
-            if (kit.contains(s)) {
-                e.setCancelled(true);
+            if (kit.getName().contains(s)) {
+                event.setCancelled(true);
                 player.sendMessage(plugin.getMessage(player, "smart-kit.kit-in-blacklist"));
                 return;
             }
         }
 
         // Make (all) PremiumKit like LevelKit!
-        if (e.getKit() instanceof PremiumKit) {
+        if (event.getKit() instanceof PremiumKit) {
             int userLevel = StatsStorage.getUserStats(player, StatsStorage.StatisticType.LEVEL);
             if (userLevel < levelRequired && !player.isOp()) {
-                e.setCancelled(true);
+                event.setCancelled(true);
                 player.sendMessage(plugin.getMessage(player, "smart-kit.premium-level-required",
                                                      "level_required", levelRequired,
                                                      "current_level", userLevel));
+                return;
             }
         }
 
-        // Display name of kit above the player's head
+        // Show the kit name above the player's head
         if (!noTagPlayers.contains(player.getName())) {
-            NametagEdit.getApi().setPrefix(player, plugin.getMessage(player, "smart-kit.tag-format", "kit", kit));
+            NametagEdit.getApi().setPrefix(player, plugin.getMessage(player, "smart-kit.tag-format", "kit", kit.getName()));
         }
     }
 
