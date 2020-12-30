@@ -6,16 +6,12 @@ import co.mcsky.villagedefensenhancement.modules.*;
 import co.mcsky.villagedefensenhancement.objects.VillagerPlayer;
 import de.themoep.utils.lang.bukkit.LanguageManager;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import plugily.projects.villagedefense.arena.Arena;
 import plugily.projects.villagedefense.arena.ArenaRegistry;
-import plugily.projects.villagedefense.kits.KitRegistry;
-import plugily.projects.villagedefense.kits.basekits.FreeKit;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -50,9 +46,6 @@ public class VillageDefenseEnhancement extends JavaPlugin {
     public void onEnable() {
         plugin = this;
         api = getPlugin(plugily.projects.villagedefense.Main.class);
-
-        // Set default kit to Light Tank
-        KitRegistry.setDefaultKit((FreeKit) KitRegistry.getKit(new ItemStack(Material.LEATHER_CHESTPLATE)));
 
         config = new Configuration();
         config.load();

@@ -1,17 +1,21 @@
 package co.mcsky.villagedefensenhancement.modules;
 
 import com.nametagedit.plugin.NametagEdit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
 import org.spongepowered.configurate.serialize.SerializationException;
 import plugily.projects.villagedefense.api.StatsStorage;
 import plugily.projects.villagedefense.api.event.game.VillageGameLeaveAttemptEvent;
 import plugily.projects.villagedefense.api.event.game.VillageGameStopEvent;
 import plugily.projects.villagedefense.api.event.player.VillagePlayerChooseKitEvent;
+import plugily.projects.villagedefense.kits.KitRegistry;
+import plugily.projects.villagedefense.kits.basekits.FreeKit;
 import plugily.projects.villagedefense.kits.basekits.Kit;
 import plugily.projects.villagedefense.kits.basekits.PremiumKit;
 
@@ -29,6 +33,9 @@ public class SmartKit implements Listener {
     private List<String> noTagPlayers;
 
     public SmartKit() {
+        // Set default kit to Light Tank
+        KitRegistry.setDefaultKit((FreeKit) KitRegistry.getKit(new ItemStack(Material.LEATHER_CHESTPLATE)));
+
         try {
             noTagPlayers = plugin.config.node("smart-kit", "no-tag-players").getList(String.class, () -> List.of("ChesNez"));
             levelRequired = plugin.config.node("smart-kit", "premium-kit-level-required").getInt(12);
