@@ -50,7 +50,7 @@ public class InventoryManager implements Listener {
     @EventHandler
     public void onPickupItem(PlayerAttemptPickupItemEvent event) {
         Player player = event.getPlayer();
-        if (!player.isOp() || !pickupWhitelist.contains(event.getItem().getItemStack().getType())) {
+        if (!player.isOp() && !pickupWhitelist.contains(event.getItem().getItemStack().getType())) {
             event.setCancelled(true);
             player.sendActionBar(plugin.getMessage(player, "inventory-manager.cannot-pickup"));
         }
@@ -59,7 +59,7 @@ public class InventoryManager implements Listener {
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
         Player player = event.getPlayer();
-        if (!player.isOp() || !dropWhitelist.contains(event.getItemDrop().getItemStack().getType())) {
+        if (!player.isOp() && !dropWhitelist.contains(event.getItemDrop().getItemStack().getType())) {
             event.setCancelled(true);
             player.sendActionBar(plugin.getMessage(player, "inventory-manager.cannot-drop"));
         }
