@@ -37,7 +37,7 @@ public class RewardManager implements Listener {
     }
 
     public void setDivisor(double divisor) {
-        sync(() -> this.divisor = divisor, this.divisor, "reward-manager", "divisor");
+        sync(() -> this.divisor = divisor, divisor, "reward-manager", "divisor");
     }
 
     @EventHandler
@@ -54,6 +54,10 @@ public class RewardManager implements Listener {
                                                                 "wave-number", event.getWaveNumber() - 1,
                                                                 "damage-done", (int) totalDamage,
                                                                 "bottle-amount", bottleAmount));
+        // Make villagers glow to help players find them
+        for (Villager villager : event.getArena().getVillagers()) {
+            villager.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 25 * 20, 1));
+        }
 
         // Create exp bottles!
         Bukkit.getScheduler().runTaskTimer(plugin, new Consumer<>() {
@@ -66,11 +70,7 @@ public class RewardManager implements Listener {
                     return;
                 }
                 for (Villager villager : event.getArena().getVillagers()) {
-                    Vector feetVector = villager.getLocation().toVector();
-                    Vector eyeVector = villager.getEyeLocation().toVector();
-                    villager.launchProjectile(ThrownExpBottle.class, eyeVector.subtract(feetVector));
-                    // Make villagers glow to help players find them
-                    villager.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 5 * 20, 1));
+                    villager.launchProjectile(ThrownExpBottle.class, Vector.getRandom());
                 }
             }
             // Set the period so that all exp bottles are thrown within 30 sec

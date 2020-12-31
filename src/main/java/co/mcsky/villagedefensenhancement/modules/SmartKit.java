@@ -8,7 +8,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -118,7 +117,7 @@ public class SmartKit implements Listener {
                 bow.addEnchantment(Enchantment.ARROW_INFINITE, 1);
             }
 
-            if (event.getForce() >= 0.8 && rd.nextFloat() < superArrowChance) {
+            if (event.getForce() >= 0.9 && rd.nextFloat() < superArrowChance) {
                 // Shoot splash potion!
                 Entity projectile = event.getProjectile();
                 ThrownPotion thrownPotion = projectile.getWorld().spawn(projectile.getLocation(), ThrownPotion.class);
@@ -127,6 +126,7 @@ public class SmartKit implements Listener {
                 PotionMeta meta = (PotionMeta) itemPotion.getItemMeta();
                 meta.setColor(Color.RED);
                 meta.addCustomEffect(new PotionEffect(PotionEffectType.HEAL, 0, 3), true);
+                meta.addCustomEffect(new PotionEffect(PotionEffectType.SLOW, 10, 4), true);
                 itemPotion.setItemMeta(meta);
 
                 thrownPotion.setItem(itemPotion);

@@ -23,8 +23,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
-import org.spigotmc.event.entity.EntityDismountEvent;
-import org.spigotmc.event.entity.EntityMountEvent;
 import org.spongepowered.configurate.serialize.SerializationException;
 import plugily.projects.villagedefense.api.event.player.VillagePlayerEntityUpgradeEvent;
 
@@ -149,7 +147,7 @@ public class BetterVillager implements Listener {
                         // Push the mount
 
                         Vector direction = player.getLocation().getDirection();
-                        mount.setVelocity(direction.setY(0).multiply(pushScalar));
+                        mount.setVelocity(direction.multiply(pushScalar));
 
                     } else if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) {
                         // Walk the mount

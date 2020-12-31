@@ -45,7 +45,7 @@ public class SmartLoot implements Listener {
     }
 
     public void setMeleeExp(int meleeExp) {
-        sync(() -> this.meleeExp = meleeExp, this.meleeExp, "smart-loot", "melee-exp");
+        sync(() -> this.meleeExp = meleeExp, meleeExp, "smart-loot", "melee-exp");
     }
 
     public int getRangeExp() {
@@ -53,7 +53,7 @@ public class SmartLoot implements Listener {
     }
 
     public void setRangeExp(int rangeExp) {
-        sync(() -> this.rangeExp = rangeExp, this.rangeExp, "smart-loot", "range-exp");
+        sync(() -> this.rangeExp = rangeExp, rangeExp, "smart-loot", "range-exp");
     }
 
     public int getMeleeLevelMultiplier() {
@@ -61,7 +61,7 @@ public class SmartLoot implements Listener {
     }
 
     public void setMeleeLevelMultiplier(int meleeLevelMultiplier) {
-        sync(() -> this.meleeLevelMultiplier = meleeLevelMultiplier, this.meleeLevelMultiplier, "smart-loot", "melee-level-multiplier");
+        sync(() -> this.meleeLevelMultiplier = meleeLevelMultiplier, meleeLevelMultiplier, "smart-loot", "melee-level-multiplier");
     }
 
     public int getRangeLevelMultiplier() {
@@ -69,7 +69,7 @@ public class SmartLoot implements Listener {
     }
 
     public void setRangeLevelMultiplier(int rangeLevelMultiplier) {
-        sync(() -> this.rangeLevelMultiplier = rangeLevelMultiplier, this.rangeLevelMultiplier, "smart-loot", "range-level-multiplier");
+        sync(() -> this.rangeLevelMultiplier = rangeLevelMultiplier, rangeLevelMultiplier, "smart-loot", "range-level-multiplier");
     }
 
     public double getDamageLowerBound() {
@@ -77,7 +77,7 @@ public class SmartLoot implements Listener {
     }
 
     public void setDamageLowerBound(double damageLowerBound) {
-        sync(() -> this.damageLowerBound = damageLowerBound, this.damageLowerBound, "smart-loot", "damage-lower-bound");
+        sync(() -> this.damageLowerBound = damageLowerBound, damageLowerBound, "smart-loot", "damage-lower-bound");
     }
 
     /**
