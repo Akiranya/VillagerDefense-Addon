@@ -22,14 +22,12 @@ public class MoreZombies implements Listener {
 
     private final Random rd;
     private final double netherProbability;
-    private final double drownedProbability;
-    private final int extraZombieBase;
+    private final int extraZombieMultiplier;
 
     public MoreZombies() {
         rd = new Random();
         netherProbability = plugin.config.node("more-zombies", "nether-probability").getDouble(0.25);
-        drownedProbability = plugin.config.node("more-zombies", "drowned-probability").getDouble(0.25);
-        extraZombieBase = plugin.config.node("more-zombies", "extra-zombie-base").getInt(32);
+        extraZombieMultiplier = plugin.config.node("more-zombies", "extra-zombie-multiplier").getInt(4);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
@@ -39,8 +37,7 @@ public class MoreZombies implements Listener {
     @EventHandler
     public void onWaveStart(VillageWaveStartEvent event) {
         Arena arena = event.getArena();
-        int extraAmount = Math.max(extraZombieBase, event.getWaveNumber() * event.getWaveNumber() - 64);
-        for (int i = 0; i < extraAmount; i++) {
+        for (int i = 0; i < event.getArena().getPlayers().size() * extraZombieMultiplier; i++) {
             switch (rd.nextInt(3)) {
                 case 0:
                     arena.spawnHardZombie(rd);
@@ -50,8 +47,6 @@ public class MoreZombies implements Listener {
                     break;
                 case 2:
                     arena.spawnHalfInvisibleZombie(rd);
-                    break;
-                default:
                     break;
             }
         }
@@ -68,8 +63,6 @@ public class MoreZombies implements Listener {
                 equipment.setLeggings(new ItemStack(Material.NETHERITE_LEGGINGS));
                 equipment.setBoots(new ItemStack(Material.NETHERITE_BOOTS));
                 equipment.setItemInMainHand(new ItemStack(Material.NETHERITE_SHOVEL));
-            } else if (rd.nextDouble() <= drownedProbability) {
-                ((Zombie) entity).setConversionTime(0);
             }
         }
     }
