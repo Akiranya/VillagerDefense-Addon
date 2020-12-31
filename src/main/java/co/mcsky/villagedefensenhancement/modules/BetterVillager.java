@@ -1,7 +1,6 @@
 package co.mcsky.villagedefensenhancement.modules;
 
 import co.aikar.commands.ACFBukkitUtil;
-import com.destroystokyo.paper.entity.Pathfinder;
 import com.destroystokyo.paper.event.entity.ProjectileCollideEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -12,12 +11,11 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.vehicle.VehicleEnterEvent;
-import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -25,18 +23,16 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
+import org.spigotmc.event.entity.EntityDismountEvent;
+import org.spigotmc.event.entity.EntityMountEvent;
 import org.spongepowered.configurate.serialize.SerializationException;
-import plugily.projects.villagedefense.api.event.game.VillageGameStartEvent;
 import plugily.projects.villagedefense.api.event.player.VillagePlayerEntityUpgradeEvent;
-import plugily.projects.villagedefense.arena.ArenaManager;
-import plugily.projects.villagedefense.arena.ArenaRegistry;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.api;
 import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.plugin;
 
 /**
@@ -47,9 +43,11 @@ public class BetterVillager implements Listener {
     private final int healPotionCount;
     private final int particleCount;
     private final int longestSightLine;
+    private final float pushScalar;
     private Set<EntityType> noCollisionEntities;
 
     public BetterVillager() {
+        pushScalar = plugin.config.node("better-villager", "push-scalar").getFloat(1.5F);
         // Spawn healing potions when upgrading a entity
         healPotionCount = plugin.config.node("better-villager", "heal-potion-count").getInt(10);
         // Allow players to control friendly creatures
@@ -138,45 +136,71 @@ public class BetterVillager implements Listener {
     }
 
     /**
-     * Allow players to control villagers/golems/wolves when riding them!
+     * Allow players to control villagers/golems/wolves when mounting them!
      */
     @EventHandler
     public void onPlayerTarget(PlayerInteractEvent event) {
         if (event.getMaterial() == Material.SADDLE && event.getHand() == EquipmentSlot.HAND) {
             Player player = event.getPlayer();
             if (player.isInsideVehicle()) {
-                Entity vehicle = player.getVehicle();
-                if (vehicle instanceof Mob) {
-                    Block targetBlock = player.getTargetBlock(longestSightLine);
-                    if (targetBlock != null) {
-                        // Set destination for path finder
-                        Pathfinder pathfinder = ((Mob) vehicle).getPathfinder();
-                        // Temporarily allow the villager to pass/open doors
-                        pathfinder.setCanPassDoors(true);
-                        pathfinder.setCanOpenDoors(true);
-                        boolean success = pathfinder.moveTo(targetBlock.getLocation());
+                Entity mount = player.getVehicle();
+                if (mount instanceof Villager || mount instanceof Wolf || mount instanceof IronGolem) {
+                    if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                        // Push the mount
 
-                        // Prompt player the information about path finder
-                        if (success) {
-                            player.sendActionBar(plugin.getMessage(player, "better-villager.move-to-destination", "location", ACFBukkitUtil.formatLocation(targetBlock.getLocation())));
-                        } else {
-                            player.sendActionBar(plugin.getMessage(player, "better-villager.cannot-find-path"));
+                        Vector direction = player.getLocation().getDirection();
+                        mount.setVelocity(direction.setY(0).multiply(pushScalar));
+
+                    } else if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) {
+                        // Walk the mount
+
+                        Block targetBlock = player.getTargetBlock(longestSightLine);
+                        if (targetBlock != null) {
+                            // Set destination for path finder
+                            boolean success = ((Mob) mount).getPathfinder().moveTo(targetBlock.getLocation());
+
+                            // Prompt player the information about path finder
+                            if (success) {
+                                player.sendActionBar(plugin.getMessage(player, "better-villager.move-to-destination", "location", ACFBukkitUtil.formatLocation(targetBlock.getLocation())));
+                            } else {
+                                player.sendActionBar(plugin.getMessage(player, "better-villager.cannot-find-path"));
+                            }
+
+                            // Create particles on destination
+                            player.getWorld().spawnParticle(Particle.LAVA, targetBlock.getLocation(), particleCount);
                         }
-
-                        // Create particles on destination
-                        player.getWorld().spawnParticle(Particle.LAVA, targetBlock.getLocation(), particleCount);
-
-                        // AFTER the villager calculates the path, disable the villager to pass/open doors
-                        pathfinder.setCanPassDoors(false);
-                        pathfinder.setCanOpenDoors(false);
                     }
                 }
             }
         }
     }
 
+//    /**
+//     * After the player mounts the villager, we temporarily enable the villager
+//     * to pass/open doors.
+//     */
+//    @EventHandler
+//    public void onPlayerMountVillager(EntityMountEvent event) {
+//        Entity mount = event.getMount();
+//        if (mount instanceof Villager && event.getEntity() instanceof Player) {
+//            ((Villager) mount).setAware(false);
+//        }
+//    }
+//
+//    /**
+//     * After the player dismounts the villager, we disable the villager to
+//     * pass/open doors (back to our initial settings).
+//     */
+//    @EventHandler
+//    public void onPlayerDismountVillager(EntityDismountEvent event) {
+//        Entity dismounted = event.getDismounted();
+//        if (dismounted instanceof Villager && event.getEntity() instanceof Player) {
+//            ((Villager) dismounted).setAware(true);
+//        }
+//    }
+
     /**
-     * Prevent wolf from sitting.
+     * Prevent wolves from sitting.
      */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerRightClickWolf(PlayerInteractEntityEvent event) {
@@ -190,10 +214,6 @@ public class BetterVillager implements Listener {
      */
     @EventHandler
     public void onProjectileCollide(ProjectileCollideEvent event) {
-        if (event.getEntity().getType() == EntityType.WITHER_SKULL) {
-            // Don't cancel collision for wither skull
-            return;
-        }
         if (noCollisionEntities.contains(event.getCollidedWith().getType())) {
             event.setCancelled(true);
         }
@@ -222,14 +242,13 @@ public class BetterVillager implements Listener {
                         task.cancel();
                         return;
                     }
-
                     // Throw heal potion onto the entity
                     Vector feetV = entity.getLocation().toVector();
                     Vector eyeV = ((LivingEntity) entity).getEyeLocation().toVector();
                     ThrownPotion thrownPotion = ((LivingEntity) entity).launchProjectile(ThrownPotion.class, feetV.subtract(eyeV));
                     thrownPotion.setItem(item);
                 }
-            }, 20L, 20L);
+            }, 20L, 30L);
         }
     }
 

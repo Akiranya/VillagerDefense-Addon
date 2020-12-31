@@ -22,12 +22,12 @@ public class MoreZombies implements Listener {
 
     private final Random rd;
     private final double netherProbability;
-    private final int extraZombieMultiplier;
+    private final int maxExtraZombies;
 
     public MoreZombies() {
         rd = new Random();
         netherProbability = plugin.config.node("more-zombies", "nether-probability").getDouble(0.25);
-        extraZombieMultiplier = plugin.config.node("more-zombies", "extra-zombie-multiplier").getInt(4);
+        maxExtraZombies = plugin.config.node("more-zombies", "max-extra-zombies").getInt(75);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
@@ -37,7 +37,7 @@ public class MoreZombies implements Listener {
     @EventHandler
     public void onWaveStart(VillageWaveStartEvent event) {
         Arena arena = event.getArena();
-        for (int i = 0; i < event.getArena().getPlayers().size() * extraZombieMultiplier; i++) {
+        for (int i = 0; i < Math.min(maxExtraZombies, event.getWaveNumber() * event.getWaveNumber()); i++) {
             switch (rd.nextInt(3)) {
                 case 0:
                     arena.spawnHardZombie(rd);

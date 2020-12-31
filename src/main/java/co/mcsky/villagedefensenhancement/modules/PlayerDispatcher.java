@@ -15,16 +15,11 @@ public class PlayerDispatcher {
     public void sendPlayerToArena(Arena arena, Set<Player> players) {
         for (Player player : players) {
             Arena tempArena = ArenaRegistry.getArena(player);
-            if (tempArena == null) {
-                // The player is not in any arena
-
-                ArenaManager.joinAttempt(player, arena);
-            } else if (tempArena != arena) {
-                // The player is in another arena
-
+            if (tempArena != null && tempArena != arena) {
+                // The player is in another arena, let he leave that one first
                 ArenaManager.leaveAttempt(player, tempArena);
-                ArenaManager.joinAttempt(player, arena);
             }
+            ArenaManager.joinAttempt(player, arena);
         }
     }
 

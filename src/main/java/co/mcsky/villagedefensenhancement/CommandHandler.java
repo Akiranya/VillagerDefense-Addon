@@ -16,10 +16,10 @@ import plugily.projects.villagedefense.arena.Arena;
 @CommandPermission("vde.mod")
 public class CommandHandler extends BaseCommand {
 
-    @Dependency SmartLoot smartLoot;
     @Dependency PlayerDispatcher gameManager;
     @Dependency InventoryManager invManager;
     @Dependency RewardManager rewardManager;
+    @Dependency SmartLoot smartLoot;
     @Dependency VillageDefenseEnhancement plugin;
 
     @HelpCommand
@@ -46,12 +46,12 @@ public class CommandHandler extends BaseCommand {
     }
 
     @Subcommand("reward")
-    public void reward(CommandSender sender, @Optional Double baseDamage, @Optional Double divisor) {
-        if (baseDamage != null && divisor != null) {
-            rewardManager.setBaseDamage(baseDamage);
+    @CommandCompletion("@nothing")
+    public void reward(CommandSender sender, @Optional Double divisor) {
+        if (divisor != null) {
             rewardManager.setDivisor(divisor);
         }
-        sender.sendMessage("保底伤害: " + rewardManager.getBaseDamage() + " 总伤害除数: " + rewardManager.getDivisor());
+        sender.sendMessage("总伤害除数: " + rewardManager.getDivisor());
     }
 
     @Subcommand("loot")
@@ -95,7 +95,7 @@ public class CommandHandler extends BaseCommand {
 
         @Subcommand("bound")
         @CommandCompletion("@nothing")
-        public void damageLowerBonud(CommandSender sender, @Optional Integer lowerBound) {
+        public void damageLowerBound(CommandSender sender, @Optional Integer lowerBound) {
             if (lowerBound != null) {
                 smartLoot.setDamageLowerBound(lowerBound);
             }

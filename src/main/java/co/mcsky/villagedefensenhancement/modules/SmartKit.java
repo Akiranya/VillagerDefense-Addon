@@ -1,15 +1,22 @@
 package co.mcsky.villagedefensenhancement.modules;
 
 import com.nametagedit.plugin.NametagEdit;
+import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.spongepowered.configurate.serialize.SerializationException;
 import plugily.projects.villagedefense.api.StatsStorage;
 import plugily.projects.villagedefense.api.event.game.VillageGameLeaveAttemptEvent;
 import plugily.projects.villagedefense.api.event.game.VillageGameStopEvent;
@@ -19,7 +26,7 @@ import plugily.projects.villagedefense.kits.basekits.FreeKit;
 import plugily.projects.villagedefense.kits.basekits.Kit;
 import plugily.projects.villagedefense.kits.basekits.PremiumKit;
 
-import java.util.List;
+import java.util.Random;
 
 import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.plugin;
 
@@ -28,21 +35,19 @@ import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.plugin
  */
 public class SmartKit implements Listener {
 
-    private int levelRequired;
-    private List<String> blacklist;
-    private List<String> noTagPlayers;
+    private final Random rd;
+    private final int levelRequired;
+    private final float superArrowChance;
 
     public SmartKit() {
+        rd = new Random();
+
         // Set default kit to Light Tank
         KitRegistry.setDefaultKit((FreeKit) KitRegistry.getKit(new ItemStack(Material.LEATHER_CHESTPLATE)));
 
-        try {
-            noTagPlayers = plugin.config.node("smart-kit", "no-tag-players").getList(String.class, () -> List.of("ChesNez"));
-            levelRequired = plugin.config.node("smart-kit", "premium-kit-level-required").getInt(12);
-            blacklist = plugin.config.node("smart-kit", "blacklist").getList(String.class, () -> List.of("骑士"));
-        } catch (SerializationException e) {
-            plugin.getLogger().severe(e.getMessage());
-        }
+        // Configuration values
+        levelRequired = plugin.config.node("smart-kit", "premium-kit-level-required").getInt(12);
+        superArrowChance = plugin.config.node("smart-kit", "super-arrow-chance").getFloat(0.25F);
 
         // Register this listener
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -55,15 +60,6 @@ public class SmartKit implements Listener {
 
         if (!kit.isUnlockedByPlayer(player)) {
             return;
-        }
-
-        // Do not allow to select kits in the blacklist
-        for (String s : blacklist) {
-            if (kit.getName().contains(s)) {
-                event.setCancelled(true);
-                player.sendMessage(plugin.getMessage(player, "smart-kit.kit-in-blacklist"));
-                return;
-            }
         }
 
         // Make (all) PremiumKit like LevelKit!
@@ -79,9 +75,7 @@ public class SmartKit implements Listener {
         }
 
         // Show the kit name above the player's head
-        if (!noTagPlayers.contains(player.getName())) {
-            NametagEdit.getApi().setPrefix(player, plugin.getMessage(player, "smart-kit.tag-format", "kit", kit.getName()));
-        }
+        NametagEdit.getApi().setPrefix(player, plugin.getMessage(player, "smart-kit.tag-format", "kit", kit.getName()));
     }
 
     @EventHandler
@@ -107,8 +101,39 @@ public class SmartKit implements Listener {
     @EventHandler
     public void onPlayerRespawn(PlayerDeathEvent event) {
         Player player = event.getEntity();
-        player.removePotionEffect(PotionEffectType.SPEED);
-        player.removePotionEffect(PotionEffectType.JUMP);
+        for (PotionEffectType effect : PotionEffectType.values()) {
+            player.removePotionEffect(effect);
+        }
+    }
+
+    /**
+     * There are chances to shoot super arrows!
+     */
+    @EventHandler
+    public void onBowShootArrow(EntityShootBowEvent event) {
+        // All bows are infinite!
+        if (event.getEntity() instanceof Player) {
+            ItemStack bow = event.getBow();
+            if (bow != null && !bow.containsEnchantment(Enchantment.ARROW_INFINITE)) {
+                bow.addEnchantment(Enchantment.ARROW_INFINITE, 1);
+            }
+
+            if (event.getForce() >= 0.8 && rd.nextFloat() < superArrowChance) {
+                // Shoot splash potion!
+                Entity projectile = event.getProjectile();
+                ThrownPotion thrownPotion = projectile.getWorld().spawn(projectile.getLocation(), ThrownPotion.class);
+
+                ItemStack itemPotion = new ItemStack(Material.SPLASH_POTION);
+                PotionMeta meta = (PotionMeta) itemPotion.getItemMeta();
+                meta.setColor(Color.RED);
+                meta.addCustomEffect(new PotionEffect(PotionEffectType.HEAL, 0, 3), true);
+                itemPotion.setItemMeta(meta);
+
+                thrownPotion.setItem(itemPotion);
+                thrownPotion.setVelocity(projectile.getVelocity());
+                event.setProjectile(thrownPotion);
+            }
+        }
     }
 
 }

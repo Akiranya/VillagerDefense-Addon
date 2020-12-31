@@ -5,6 +5,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
@@ -24,12 +25,10 @@ import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.plugin
 public class RewardManager implements Listener {
 
     private double divisor;
-    private double baseDamage;
     private double totalDamage;
 
     public RewardManager() {
-        divisor = plugin.config.node("reward-manager", "divisor").getDouble(2000);
-        baseDamage = plugin.config.node("reward-manager", "base-damage").getDouble(2000);
+        divisor = plugin.config.node("reward-manager", "divisor").getDouble(1000);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
@@ -38,17 +37,7 @@ public class RewardManager implements Listener {
     }
 
     public void setDivisor(double divisor) {
-        sync(() -> this.divisor = divisor,
-             divisor, "reward-manager", "divisor");
-    }
-
-    public double getBaseDamage() {
-        return baseDamage;
-    }
-
-    public void setBaseDamage(double baseDamage) {
-        sync(() -> this.baseDamage = baseDamage,
-             baseDamage, "reward-manager", "base-damage");
+        sync(() -> this.divisor = divisor, this.divisor, "reward-manager", "divisor");
     }
 
     @EventHandler
@@ -58,17 +47,13 @@ public class RewardManager implements Listener {
 
     @EventHandler
     public void onWaveEnd(VillageWaveEndEvent event) {
-        int bottleAmount = (int) Math.floor((totalDamage + baseDamage) / divisor);
+        // Take the ceil to ensure at least 1 exp bottle
+        int bottleAmount = (int) Math.ceil(totalDamage / divisor);
         api.getChatManager().broadcastMessage(event.getArena(),
                                               plugin.getMessage(null, "reward-manager.damage-summary",
                                                                 "wave-number", event.getWaveNumber() - 1,
                                                                 "damage-done", (int) totalDamage,
                                                                 "bottle-amount", bottleAmount));
-
-        // Make villagers glow to help players find them
-        for (Villager villager : event.getArena().getVillagers()) {
-            villager.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 15 * 20, 1));
-        }
 
         // Create exp bottles!
         Bukkit.getScheduler().runTaskTimer(plugin, new Consumer<>() {
@@ -83,17 +68,35 @@ public class RewardManager implements Listener {
                 for (Villager villager : event.getArena().getVillagers()) {
                     Vector feetVector = villager.getLocation().toVector();
                     Vector eyeVector = villager.getEyeLocation().toVector();
-                    villager.launchProjectile(ThrownExpBottle.class, eyeVector.subtract(feetVector).normalize());
+                    villager.launchProjectile(ThrownExpBottle.class, eyeVector.subtract(feetVector));
+                    // Make villagers glow to help players find them
+                    villager.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 5 * 20, 1));
                 }
             }
-        }, 100L, 20L);
+            // Set the period so that all exp bottles are thrown within 30 sec
+        }, 5L * 20L, (long) Math.max(1D, 25D / bottleAmount * 20D));
     }
 
+    /**
+     * Count damage done by the players to the zombie.
+     */
     @EventHandler
-    public void onEntityDamageByPlayer(EntityDamageByEntityEvent event) {
+    public void onZombieDamageByPlayer(EntityDamageByEntityEvent event) {
         Entity damager = event.getDamager();
         if (event.getEntity() instanceof Zombie && (damager instanceof Player || damager instanceof Projectile || damager instanceof Wolf || damager instanceof IronGolem)) {
             totalDamage += event.getFinalDamage();
+        }
+    }
+
+    /**
+     * If the zombie is healed, invalidate equal amount from the total damage
+     * done by players. This prevents the case where the player could farm coins
+     * by healing & damaging, back and forth.
+     */
+    @EventHandler
+    public void onZombieRegainHealthByPlayer(EntityRegainHealthEvent event) {
+        if (event.getEntity() instanceof Zombie) {
+            totalDamage -= event.getAmount();
         }
     }
 
