@@ -11,10 +11,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.spongepowered.configurate.serialize.SerializationException;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.plugin;
 
@@ -34,18 +31,6 @@ public class InventoryManager implements Listener {
 
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
-
-/*
-    @EventHandler
-    public void onGameStart(VillageGameStartEvent event) {
-        enable();
-    }
-
-    @EventHandler
-    public void onGameEnd(VillageGameStopEvent event) {
-        disable();
-    }
-*/
 
     @EventHandler
     public void onPickupItem(PlayerAttemptPickupItemEvent event) {
@@ -73,19 +58,23 @@ public class InventoryManager implements Listener {
     }
 
     public void dropAddWhitelist(Material mat) {
-        syncWithConfig(() -> dropWhitelist.add(mat));
+        sync(() -> dropWhitelist.add(mat), Material.class, dropWhitelist,
+             "inventory-manager", "drop-whitelist");
     }
 
     public void dropRemoveWhitelist(Material mat) {
-        syncWithConfig(() -> dropWhitelist.remove(mat));
+        sync(() -> dropWhitelist.remove(mat), Material.class, dropWhitelist,
+             "inventory-manager", "drop-whitelist");
     }
 
     public void pickupAddWhitelist(Material mat) {
-        syncWithConfig(() -> pickupWhitelist.add(mat));
+        sync(() -> pickupWhitelist.add(mat), Material.class, pickupWhitelist,
+             "inventory-manager", "pickup-whitelist");
     }
 
     public void pickupRemoveWhitelist(Material mat) {
-        syncWithConfig(() -> pickupWhitelist.remove(mat));
+        sync(() -> pickupWhitelist.remove(mat), Material.class, pickupWhitelist,
+             "inventory-manager", "pickup-whitelist");
     }
 
     public void dropListShow(CommandSender sender) {
@@ -108,11 +97,20 @@ public class InventoryManager implements Listener {
         plugin.getLogger().info("InventoryManager is off!");
     }
 
-    private void syncWithConfig(Runnable update) {
-        update.run();
+    /**
+     * A convenience method to enforce updating values in both class fields and
+     * the plugin config file.
+     *
+     * @param setter setter which sets the class fields
+     * @param clazz  the element type of the list
+     * @param value  the value to be stored in the config file
+     * @param path   the path to which the value to be stored in the config
+     *               file
+     */
+    private <E, C extends Collection<E>> void sync(Runnable setter, Class<E> clazz, C value, Object... path) {
+        setter.run();
         try {
-            plugin.config.node("inventory-manager", "pickup-whitelist").setList(Material.class, new ArrayList<>(pickupWhitelist));
-            plugin.config.node("inventory-manager", "drop-whitelist").setList(Material.class, new ArrayList<>(dropWhitelist));
+            plugin.config.node(path).setList(clazz, new ArrayList<>(value));
         } catch (SerializationException e) {
             plugin.getLogger().severe(e.getMessage());
         }

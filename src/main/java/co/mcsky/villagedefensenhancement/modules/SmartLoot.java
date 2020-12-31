@@ -1,6 +1,6 @@
 package co.mcsky.villagedefensenhancement.modules;
 
-import lombok.Getter;
+import com.destroystokyo.paper.event.entity.ExperienceOrbMergeEvent;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
@@ -21,12 +21,11 @@ import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.plugin
 public class SmartLoot implements Listener {
 
     private final Random random;
-
-    @Getter private int meleeExp;
-    @Getter private int rangeExp;
-    @Getter private int meleeLevelMultiplier;
-    @Getter private int rangeLevelMultiplier;
-    @Getter private double damageLowerBound;
+    private int meleeExp;
+    private int rangeExp;
+    private int meleeLevelMultiplier;
+    private int rangeLevelMultiplier;
+    private double damageLowerBound;
 
     public SmartLoot() {
         random = new Random();
@@ -42,24 +41,49 @@ public class SmartLoot implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
+    public int getMeleeExp() {
+        return meleeExp;
+    }
+
     public void setMeleeExp(int meleeExp) {
-        syncWithConfig(() -> this.meleeExp = meleeExp);
+        sync(() -> this.meleeExp = meleeExp, this.meleeExp,
+             "smart-loot", "melee-exp");
+    }
+
+    public int getRangeExp() {
+        return rangeExp;
     }
 
     public void setRangeExp(int rangeExp) {
-        syncWithConfig(() -> this.rangeExp = rangeExp);
+        sync(() -> this.rangeExp = rangeExp, this.rangeExp,
+             "smart-loot", "range-exp");
+    }
+
+    public int getMeleeLevelMultiplier() {
+        return meleeLevelMultiplier;
     }
 
     public void setMeleeLevelMultiplier(int meleeLevelMultiplier) {
-        syncWithConfig(() -> this.meleeLevelMultiplier = meleeLevelMultiplier);
+        sync(() -> this.meleeLevelMultiplier = meleeLevelMultiplier, this.meleeLevelMultiplier,
+             "smart-loot", "melee-level-multiplier");
+    }
+
+    public int getRangeLevelMultiplier() {
+        return rangeLevelMultiplier;
     }
 
     public void setRangeLevelMultiplier(int rangeLevelMultiplier) {
-        syncWithConfig(() -> this.rangeLevelMultiplier = rangeLevelMultiplier);
+        sync(() -> this.rangeLevelMultiplier = rangeLevelMultiplier, this.rangeLevelMultiplier,
+             "smart-loot", "range-level-multiplier");
+    }
+
+    public double getDamageLowerBound() {
+        return damageLowerBound;
     }
 
     public void setDamageLowerBound(double damageLowerBound) {
-        syncWithConfig(() -> this.damageLowerBound = damageLowerBound);
+        sync(() -> this.damageLowerBound = damageLowerBound, this.damageLowerBound,
+             "smart-loot", "damage-lower-bound");
     }
 
     /**
@@ -110,19 +134,31 @@ public class SmartLoot implements Listener {
         }
     }
 
-    private void syncWithConfig(Runnable update) {
-        update.run();
+    /**
+     * Don't merge exp orbs so that each player can get some exp
+     */
+    @EventHandler
+    public void onExpMerge(ExperienceOrbMergeEvent event) {
+        event.setCancelled(true);
+    }
+
+    /**
+     * A convenience method to enforce updating values in both class fields and
+     * the plugin config file.
+     *
+     * @param setter setter which sets the class fields
+     * @param value  the value to be stored in the config file
+     * @param path   the path to which the value to be stored in the config
+     *               file
+     */
+    private void sync(Runnable setter, Object value, Object... path) {
+        setter.run();
         try {
-            plugin.config.node("smart-loot", "melee-exp").set(meleeExp);
-            plugin.config.node("smart-loot", "range-exp").set(rangeExp);
-            plugin.config.node("smart-loot", "melee-level-multiplier").set(meleeLevelMultiplier);
-            plugin.config.node("smart-loot", "range-level-multiplier").set(rangeLevelMultiplier);
-            plugin.config.node("smart-loot", "damage-lower-bound").set(damageLowerBound);
+            plugin.config.node(path).set(value);
         } catch (SerializationException e) {
             plugin.getLogger().severe(e.getMessage());
         }
         plugin.config.save();
     }
-
 
 }

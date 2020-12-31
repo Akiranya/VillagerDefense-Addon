@@ -51,5 +51,10 @@
       <option name="name" value="plajerlair-repo" />
       <option name="url" value="https://maven.plajer.xyz/minecraft" />
     </remote-repository>
+    <remote-repository>
+      <option name="id" value="nametagedit-mirror" />
+      <option name="name" value="nametagedit-mirror" />
+      <option name="url" value="http://minevolt.net/repo" />
+    </remote-repository>
   </component>
 </project>

@@ -34,6 +34,7 @@ public class VillageDefenseEnhancement extends JavaPlugin {
 
     private InventoryManager invManager;
     private PlayerDispatcher gameManager;
+    private RewardManager rewardManager;
 
     @Override
     public void onDisable() {
@@ -85,6 +86,7 @@ public class VillageDefenseEnhancement extends JavaPlugin {
 
         invManager = new InventoryManager();
         gameManager = new PlayerDispatcher();
+        rewardManager = new RewardManager();
     }
 
     private void initializeLanguageManager() {
@@ -111,6 +113,7 @@ public class VillageDefenseEnhancement extends JavaPlugin {
             return Optional.ofNullable(ArenaRegistry.getArena(name))
                            .orElseThrow(() -> new InvalidCommandArgument(String.format("没有叫做 %s 的竞技场", name)));
         });
+        commandManager.registerDependency(RewardManager.class, rewardManager);
         commandManager.registerDependency(PlayerDispatcher.class, gameManager);
         commandManager.registerDependency(InventoryManager.class, invManager);
         commandManager.registerDependency(SmartLoot.class, smartLoot);

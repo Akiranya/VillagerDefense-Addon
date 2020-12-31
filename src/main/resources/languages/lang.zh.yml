@@ -11,3 +11,6 @@ better-villager:
   cry-message: "{villager} -> 有只僵尸在打我,快来人救救我!"
   cannot-find-path: "无法前往目的地..."
   move-to-destination: "正在命令坐骑前往 {location}"
+reward-manager:
+  damage-summary: "&7第 &f{wave-number}&7 波尸潮刚刚波结束了! 各位勇士们总共对僵尸们造成了 &c{damage-done}&7 点伤害...
+  村民们都感激不尽! &6每个&7 村民都决定赠送 &6{bottle-amount}&7 个 &e经验瓶&7 给大家, 快去村民那领取馈赠吧~"

@@ -1,7 +1,9 @@
 package co.mcsky.villagedefensenhancement.modules;
 
 import co.aikar.commands.ACFBukkitUtil;
+import com.destroystokyo.paper.entity.Pathfinder;
 import com.destroystokyo.paper.event.entity.ProjectileCollideEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -14,19 +16,27 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.vehicle.VehicleEnterEvent;
+import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import org.spongepowered.configurate.serialize.SerializationException;
 import plugily.projects.villagedefense.api.event.game.VillageGameStartEvent;
 import plugily.projects.villagedefense.api.event.player.VillagePlayerEntityUpgradeEvent;
+import plugily.projects.villagedefense.arena.ArenaManager;
+import plugily.projects.villagedefense.arena.ArenaRegistry;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 
+import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.api;
 import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.plugin;
 
 /**
@@ -34,17 +44,13 @@ import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.plugin
  */
 public class BetterVillager implements Listener {
 
-    private final Map<Integer, AtomicInteger> taskTimer;
     private final int healPotionCount;
     private final int particleCount;
     private final int longestSightLine;
     private Set<EntityType> noCollisionEntities;
 
-    private VillageGameStartEvent gameEvent;
-
     public BetterVillager() {
         // Spawn healing potions when upgrading a entity
-        taskTimer = new HashMap<>();
         healPotionCount = plugin.config.node("better-villager", "heal-potion-count").getInt(10);
         // Allow players to control friendly creatures
         particleCount = plugin.config.node("better-villager", "particle-count").getInt(16);
@@ -66,25 +72,18 @@ public class BetterVillager implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
-    @EventHandler
-    public void initEvent(VillageGameStartEvent event) {
-        gameEvent = event;
-    }
-
     /**
      * Prompt players if there is any villager on damage.
      */
     @EventHandler
     public void onVillagerDamage(EntityDamageByEntityEvent event) {
-        if (gameEvent == null) return;
-
         Entity entity = event.getEntity();
         if (entity instanceof Villager) {
             // Only remind if the damager is a zombie or wither
             Entity damager = event.getDamager();
             if (damager instanceof Monster && event.getFinalDamage() > 1) {
                 ((Villager) entity).addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 10 * 20, 1));
-                for (Player player : gameEvent.getArena().getPlayers()) {
+                for (Player player : Bukkit.getOnlinePlayers()) {
                     player.sendActionBar(plugin.getMessage(player, "better-villager.cry-message", "villager", entity.getCustomName()));
                 }
             }
@@ -151,7 +150,11 @@ public class BetterVillager implements Listener {
                     Block targetBlock = player.getTargetBlock(longestSightLine);
                     if (targetBlock != null) {
                         // Set destination for path finder
-                        boolean success = ((Mob) vehicle).getPathfinder().moveTo(targetBlock.getLocation());
+                        Pathfinder pathfinder = ((Mob) vehicle).getPathfinder();
+                        // Temporarily allow the villager to pass/open doors
+                        pathfinder.setCanPassDoors(true);
+                        pathfinder.setCanOpenDoors(true);
+                        boolean success = pathfinder.moveTo(targetBlock.getLocation());
 
                         // Prompt player the information about path finder
                         if (success) {
@@ -162,6 +165,10 @@ public class BetterVillager implements Listener {
 
                         // Create particles on destination
                         player.getWorld().spawnParticle(Particle.LAVA, targetBlock.getLocation(), particleCount);
+
+                        // AFTER the villager calculates the path, disable the villager to pass/open doors
+                        pathfinder.setCanPassDoors(false);
+                        pathfinder.setCanOpenDoors(false);
                     }
                 }
             }
@@ -205,21 +212,23 @@ public class BetterVillager implements Listener {
             meta.addCustomEffect(new PotionEffect(PotionEffectType.HEAL, 10, 2), true);
             item.setItemMeta(meta);
 
-            plugin.getServer().getScheduler().runTaskTimer(plugin, task -> {
-                // Check if we should cancel this task
-                taskTimer.putIfAbsent(task.getTaskId(), new AtomicInteger(healPotionCount));
-                if (taskTimer.get(task.getTaskId()).decrementAndGet() < 0) {
-                    taskTimer.remove(task.getTaskId());
-                    task.cancel();
-                    return;
-                }
+            plugin.getServer().getScheduler().runTaskTimer(plugin, new Consumer<>() {
+                private int count = healPotionCount;
 
-                // Throw heal potion onto the entity
-                ThrownPotion thrownPotion = ((LivingEntity) entity).launchProjectile(ThrownPotion.class);
-                thrownPotion.setItem(item);
-                // Throw the potion onto this feet
-                Vector dir = entity.getLocation().toVector().subtract(((LivingEntity) entity).getEyeLocation().toVector());
-                thrownPotion.setVelocity(dir);
+                @Override
+                public void accept(BukkitTask task) {
+                    // Check if we should cancel this task
+                    if (--count < 0) {
+                        task.cancel();
+                        return;
+                    }
+
+                    // Throw heal potion onto the entity
+                    Vector feetV = entity.getLocation().toVector();
+                    Vector eyeV = ((LivingEntity) entity).getEyeLocation().toVector();
+                    ThrownPotion thrownPotion = ((LivingEntity) entity).launchProjectile(ThrownPotion.class, feetV.subtract(eyeV));
+                    thrownPotion.setItem(item);
+                }
             }, 20L, 20L);
         }
     }
