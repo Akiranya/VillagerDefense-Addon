@@ -111,28 +111,26 @@ public class SmartKit implements Listener {
     @EventHandler
     public void onBowShootArrow(EntityShootBowEvent event) {
         // All bows are infinite!
-        if (event.getEntity() instanceof Player) {
-            ItemStack bow = event.getBow();
-            if (bow != null && !bow.containsEnchantment(Enchantment.ARROW_INFINITE)) {
-                bow.addEnchantment(Enchantment.ARROW_INFINITE, 1);
-            }
+        ItemStack bow = event.getBow();
+        if (bow != null && !bow.containsEnchantment(Enchantment.ARROW_INFINITE)) {
+            bow.addEnchantment(Enchantment.ARROW_INFINITE, 1);
+        }
 
-            if (event.getForce() >= 0.9 && rd.nextFloat() < superArrowChance) {
-                // Shoot splash potion!
-                Entity projectile = event.getProjectile();
-                ThrownPotion thrownPotion = projectile.getWorld().spawn(projectile.getLocation(), ThrownPotion.class);
+        if (event.getForce() >= 0.9 && rd.nextFloat() < superArrowChance) {
+            // Shoot splash potion!
+            Entity projectile = event.getProjectile();
+            ThrownPotion thrownPotion = projectile.getWorld().spawn(projectile.getLocation(), ThrownPotion.class);
 
-                ItemStack itemPotion = new ItemStack(Material.SPLASH_POTION);
-                PotionMeta meta = (PotionMeta) itemPotion.getItemMeta();
-                meta.setColor(Color.RED);
-                meta.addCustomEffect(new PotionEffect(PotionEffectType.HEAL, 0, 3), true);
-                meta.addCustomEffect(new PotionEffect(PotionEffectType.SLOW, 10, 4), true);
-                itemPotion.setItemMeta(meta);
+            ItemStack itemPotion = new ItemStack(Material.SPLASH_POTION);
+            PotionMeta meta = (PotionMeta) itemPotion.getItemMeta();
+            meta.setColor(Color.RED);
+            meta.addCustomEffect(new PotionEffect(PotionEffectType.HEAL, 0, 3), true);
+            meta.addCustomEffect(new PotionEffect(PotionEffectType.SLOW, 10, 4), true);
+            itemPotion.setItemMeta(meta);
 
-                thrownPotion.setItem(itemPotion);
-                thrownPotion.setVelocity(projectile.getVelocity());
-                event.setProjectile(thrownPotion);
-            }
+            thrownPotion.setItem(itemPotion);
+            thrownPotion.setVelocity(projectile.getVelocity());
+            event.setProjectile(thrownPotion);
         }
     }
 
