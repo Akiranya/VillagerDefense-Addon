@@ -32,6 +32,7 @@ import plugily.projects.villagedefense.kits.premium.PremiumHardcoreKit;
 import plugily.projects.villagedefense.user.UserManager;
 
 import java.util.Random;
+import java.util.Set;
 
 import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.api;
 import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.plugin;
@@ -44,9 +45,12 @@ public class SmartKit implements Listener {
     private final Random rd;
     private final int levelRequired;
     private final float superArrowChance;
+    private final Set<Class<? extends Kit>> kitList;
 
     public SmartKit() {
         rd = new Random();
+
+        kitList = Set.of(HeavyTankKit.class, MediumTankKit.class, HardcoreKit.class, PremiumHardcoreKit.class);
 
         // Set default kit to Light Tank
         KitRegistry.setDefaultKit((FreeKit) KitRegistry.getKit(new ItemStack(Material.LEATHER_CHESTPLATE)));
@@ -63,6 +67,15 @@ public class SmartKit implements Listener {
     public void onPlayerChooseKit(VillagePlayerChooseKitEvent event) {
         Kit kit = event.getKit();
         Player player = event.getPlayer();
+        UserManager userManager = api.getUserManager();
+
+        // New Feature: don't allow to select kit while arena is fighting.
+        // Only allow to do so during spectating and before the first wave.
+        if (event.getArena().isFighting() && !userManager.getUser(player).isSpectator()) {
+            event.setCancelled(true);
+            player.sendMessage(plugin.getMessage(player, "smart-kit.cannot-select-kit"));
+            return;
+        }
 
         if (!kit.isUnlockedByPlayer(player)) {
             return;
@@ -84,15 +97,9 @@ public class SmartKit implements Listener {
         NametagEdit.getApi().setPrefix(player, plugin.getMessage(player, "smart-kit.tag-format", "kit", kit.getName()));
 
         // Bug Fix: set max health to default (20) if currently selected kit doesn't modify max health
-        UserManager userManager = api.getUserManager();
-        if (userManager.getUser(player).isSpectator()) {
-            if (!(userManager.getUser(player).getKit() instanceof MediumTankKit ||
-                  userManager.getUser(player).getKit() instanceof HeavyTankKit ||
-                  userManager.getUser(player).getKit() instanceof HardcoreKit ||
-                  userManager.getUser(player).getKit() instanceof PremiumHardcoreKit)) {
-                //noinspection ConstantConditions
-                player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20D);
-            }
+        if (kitList.contains(userManager.getUser(player).getKit().getClass()) && !kitList.contains(event.getKit().getClass())) {
+            //noinspection ConstantConditions
+            player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20D);
         }
     }
 

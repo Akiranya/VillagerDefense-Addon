@@ -5,6 +5,7 @@ smart-loot:
   exp-gained: "你获得了 {exp} 经验!"
 smart-kit:
   premium-level-required: "你需要达到 {level-required} 级才可以选择顶级职业 (当前等级: {current-level})"
+  cannot-select-kit: "&e&l只能在观战(死亡)时选择职业!"
   kit-in-blacklist: "你不能选择这个职业!"
   tag-format: "&f[&a{kit}&f]"
 better-villager:
