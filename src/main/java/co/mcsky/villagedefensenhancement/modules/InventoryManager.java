@@ -32,7 +32,7 @@ public class InventoryManager implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onPickupItem(PlayerAttemptPickupItemEvent event) {
         Player player = event.getPlayer();
         if (!player.isOp() && !pickupWhitelist.contains(event.getItem().getItemStack().getType())) {
@@ -41,7 +41,7 @@ public class InventoryManager implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onDropItem(PlayerDropItemEvent event) {
         Player player = event.getPlayer();
         if (!player.isOp() && !dropWhitelist.contains(event.getItemDrop().getItemStack().getType())) {
