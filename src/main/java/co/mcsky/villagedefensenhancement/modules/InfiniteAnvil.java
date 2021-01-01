@@ -8,6 +8,9 @@ import org.bukkit.event.player.PlayerLevelChangeEvent;
 
 import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.plugin;
 
+/**
+ * New Feature: don't consume levels when using anvil & unbroken anvil
+ */
 public class InfiniteAnvil implements Listener {
 
     private final boolean unbroken;

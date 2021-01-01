@@ -32,7 +32,7 @@ public class MoreZombies implements Listener {
     }
 
     /**
-     * Spawn more zombies
+     * New Feature: spawn more zombies
      */
     @EventHandler
     public void onWaveStart(VillageWaveStartEvent event) {

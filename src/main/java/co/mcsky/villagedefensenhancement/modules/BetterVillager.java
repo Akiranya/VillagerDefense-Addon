@@ -22,8 +22,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
-import org.spigotmc.event.entity.EntityDismountEvent;
-import org.spigotmc.event.entity.EntityMountEvent;
 import org.spongepowered.configurate.serialize.SerializationException;
 import plugily.projects.villagedefense.api.event.player.VillagePlayerEntityUpgradeEvent;
 
@@ -74,7 +72,7 @@ public class BetterVillager implements Listener {
     }
 
     /**
-     * Prompt players if there is any villager on damage.
+     * New Feature: prompt players if there is any villager on damage.
      */
     @EventHandler
     public void onVillagerDamage(EntityDamageByEntityEvent event) {
@@ -92,7 +90,7 @@ public class BetterVillager implements Listener {
     }
 
     /**
-     * Stop villagers from opening/passing doors.
+     * New Feature: stop villagers from opening/passing doors.
      */
     @EventHandler
     public void onVillagerSpawn(CreatureSpawnEvent event) {
@@ -106,7 +104,8 @@ public class BetterVillager implements Listener {
     }
 
     /**
-     * Allow players to leash villagers (this mimics the vanilla behavior).
+     * New Feature: allow players to leash villagers (this should mimic the
+     * vanilla behaviors as if leashing/unleashing a cow, for example).
      */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onLeashFriendlyCreature(PlayerInteractEntityEvent event) {
@@ -139,9 +138,9 @@ public class BetterVillager implements Listener {
     }
 
     /**
-     * Allow players to control villagers/golems/wolves using saddle when
-     * mounting them! This listener assumes that the player ALREADY enters the
-     * mount.
+     * New Feature: allow players to control villagers/golems/wolves using
+     * saddle when mounting them! This listener assumes that the player ALREADY
+     * enters the mount.
      */
     @EventHandler
     public void onPlayerTarget(PlayerInteractEvent event) {
@@ -175,8 +174,7 @@ public class BetterVillager implements Listener {
     }
 
     /**
-     * Allow the player to make the mount jump if the player tries to drop the
-     * saddle in their hand.
+     * New Feature: allow the player to turn on/off mount's AI.
      */
     @EventHandler
     public void onPlayerDropSaddle(PlayerDropItemEvent event) {
@@ -239,22 +237,8 @@ public class BetterVillager implements Listener {
         }
     }
 
-    @EventHandler
-    public void onPlayerMountVillager(EntityMountEvent event) {
-        if (event.getMount() instanceof Villager) {
-            ((Villager) event.getMount()).setAware(false);
-        }
-    }
-
-    @EventHandler
-    public void onPlayerDismountVillager(EntityDismountEvent event) {
-        if (event.getDismounted() instanceof Villager) {
-            ((Villager) event.getDismounted()).setAware(true);
-        }
-    }
-
     /**
-     * Prevent wolves from sitting.
+     * Bug Fix: prevent wolves from sitting.
      */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerRightClickWolf(PlayerInteractEntityEvent event) {
@@ -264,7 +248,8 @@ public class BetterVillager implements Listener {
     }
 
     /**
-     * Projectiles from players can pass through friendly creatures.
+     * New Feature: projectiles from players can pass through friendly
+     * creatures.
      */
     @EventHandler
     public void onProjectileCollide(ProjectileCollideEvent event) {
@@ -274,7 +259,7 @@ public class BetterVillager implements Listener {
     }
 
     /**
-     * Heal the entity when it is being upgraded.
+     * New Feature: heal the entity when it is being upgraded.
      */
     @EventHandler
     public void onEntityUpgrade(VillagePlayerEntityUpgradeEvent event) {

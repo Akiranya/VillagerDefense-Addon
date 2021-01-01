@@ -81,7 +81,7 @@ public class SmartLoot implements Listener {
     }
 
     /**
-     * Give exp & level to attacker on each damage.
+     * New Feature: give exp & level to attacker on each damage.
      */
     @EventHandler
     public void onEntityDamage(EntityDamageByEntityEvent event) {

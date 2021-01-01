@@ -20,7 +20,7 @@ import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.api;
 import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.plugin;
 
 /**
- * Assume that there is always only one arena running.
+ * Assume that there is always only one arena running, otherwise bugs happen!
  */
 public class RewardManager implements Listener {
 
@@ -91,7 +91,7 @@ public class RewardManager implements Listener {
     /**
      * If the zombie is healed, invalidate equal amount from the total damage
      * done by players. This prevents the case where the player could farm coins
-     * by healing & damaging, back and forth.
+     * by healing & damaging zombies back and forth.
      */
     @EventHandler
     public void onZombieRegainHealthByPlayer(EntityRegainHealthEvent event) {
@@ -102,7 +102,7 @@ public class RewardManager implements Listener {
 
     /**
      * A convenience method to enforce updating values in both class fields and
-     * the plugin config file.
+     * the plugin config files.
      *
      * @param setter setter which sets the class fields
      * @param value  the value to be stored in the config file

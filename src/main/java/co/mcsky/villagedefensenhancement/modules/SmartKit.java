@@ -3,6 +3,7 @@ package co.mcsky.villagedefensenhancement.modules;
 import com.nametagedit.plugin.NametagEdit;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -24,9 +25,15 @@ import plugily.projects.villagedefense.kits.KitRegistry;
 import plugily.projects.villagedefense.kits.basekits.FreeKit;
 import plugily.projects.villagedefense.kits.basekits.Kit;
 import plugily.projects.villagedefense.kits.basekits.PremiumKit;
+import plugily.projects.villagedefense.kits.level.HardcoreKit;
+import plugily.projects.villagedefense.kits.level.MediumTankKit;
+import plugily.projects.villagedefense.kits.premium.HeavyTankKit;
+import plugily.projects.villagedefense.kits.premium.PremiumHardcoreKit;
+import plugily.projects.villagedefense.user.UserManager;
 
 import java.util.Random;
 
+import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.api;
 import static co.mcsky.villagedefensenhancement.VillageDefenseEnhancement.plugin;
 
 /**
@@ -61,7 +68,7 @@ public class SmartKit implements Listener {
             return;
         }
 
-        // Make (all) PremiumKit like LevelKit!
+        // New Feature: make (all) PremiumKit like LevelKit!
         if (event.getKit() instanceof PremiumKit) {
             int userLevel = StatsStorage.getUserStats(player, StatsStorage.StatisticType.LEVEL);
             if (userLevel < levelRequired && !player.isOp()) {
@@ -73,8 +80,20 @@ public class SmartKit implements Listener {
             }
         }
 
-        // Show the kit name above the player's head
+        // New Feature: show the kit name above the player's head
         NametagEdit.getApi().setPrefix(player, plugin.getMessage(player, "smart-kit.tag-format", "kit", kit.getName()));
+
+        // Bug Fix: set max health to default (20) if currently selected kit doesn't modify max health
+        UserManager userManager = api.getUserManager();
+        if (userManager.getUser(player).isSpectator()) {
+            if (!(userManager.getUser(player).getKit() instanceof MediumTankKit ||
+                  userManager.getUser(player).getKit() instanceof HeavyTankKit ||
+                  userManager.getUser(player).getKit() instanceof HardcoreKit ||
+                  userManager.getUser(player).getKit() instanceof PremiumHardcoreKit)) {
+                //noinspection ConstantConditions
+                player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20D);
+            }
+        }
     }
 
     @EventHandler
@@ -95,7 +114,8 @@ public class SmartKit implements Listener {
     }
 
     /**
-     * Remove all potion effects upon death.
+     * Bug Fix: Remove all potion effects upon death to prevent some "residual
+     * effects" from the player's previous kit.
      */
     @EventHandler
     public void onPlayerRespawn(PlayerDeathEvent event) {
@@ -106,7 +126,7 @@ public class SmartKit implements Listener {
     }
 
     /**
-     * There are chances to shoot super arrows!
+     * New Feature: There are chances to shoot super arrows!
      */
     @EventHandler
     public void onBowShootArrow(EntityShootBowEvent event) {
