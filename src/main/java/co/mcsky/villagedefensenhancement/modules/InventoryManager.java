@@ -4,6 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
@@ -32,7 +33,7 @@ public class InventoryManager implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPickupItem(PlayerAttemptPickupItemEvent event) {
         Player player = event.getPlayer();
         if (!player.isOp() && !pickupWhitelist.contains(event.getItem().getItemStack().getType())) {
@@ -41,7 +42,7 @@ public class InventoryManager implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDropItem(PlayerDropItemEvent event) {
         Player player = event.getPlayer();
         if (!player.isOp() && !dropWhitelist.contains(event.getItemDrop().getItemStack().getType())) {

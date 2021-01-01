@@ -26,6 +26,10 @@
             <url>https://repo.aikar.co/content/groups/aikar/</url>
         </repository>
         <repository>
+            <id>jitpack</id>
+            <url>https://jitpack.io/</url>
+        </repository>
+        <repository>
             <id>nametagedit-mirror</id>
             <url>http://minevolt.net/repo</url>
         </repository>

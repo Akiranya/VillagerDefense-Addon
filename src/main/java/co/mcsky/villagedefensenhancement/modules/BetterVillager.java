@@ -1,11 +1,9 @@
 package co.mcsky.villagedefensenhancement.modules;
 
 import co.aikar.commands.ACFBukkitUtil;
+import com.destroystokyo.paper.entity.Pathfinder;
 import com.destroystokyo.paper.event.entity.ProjectileCollideEvent;
-import org.bukkit.Bukkit;
-import org.bukkit.Color;
-import org.bukkit.Material;
-import org.bukkit.Particle;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -14,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -23,6 +22,8 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
+import org.spigotmc.event.entity.EntityDismountEvent;
+import org.spigotmc.event.entity.EntityMountEvent;
 import org.spongepowered.configurate.serialize.SerializationException;
 import plugily.projects.villagedefense.api.event.player.VillagePlayerEntityUpgradeEvent;
 
@@ -41,11 +42,15 @@ public class BetterVillager implements Listener {
     private final int healPotionCount;
     private final int particleCount;
     private final int longestSightLine;
-    private final float pushScalar;
+    private final double pushScalar;
     private Set<EntityType> noCollisionEntities;
 
+    // Work around to prevent executing onPlayerTarget() right after onPlayerDropSaddle()
+    private boolean flag;
+
     public BetterVillager() {
-        pushScalar = plugin.config.node("better-villager", "push-scalar").getFloat(1.5F);
+        // Strength
+        pushScalar = plugin.config.node("better-villager", "push-scalar").getDouble(1.0);
         // Spawn healing potions when upgrading a entity
         healPotionCount = plugin.config.node("better-villager", "heal-potion-count").getInt(10);
         // Allow players to control friendly creatures
@@ -101,7 +106,7 @@ public class BetterVillager implements Listener {
     }
 
     /**
-     * Allow players to leash villagers (this mimics the vanilla behaviors).
+     * Allow players to leash villagers (this mimics the vanilla behavior).
      */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onLeashFriendlyCreature(PlayerInteractEntityEvent event) {
@@ -134,68 +139,119 @@ public class BetterVillager implements Listener {
     }
 
     /**
-     * Allow players to control villagers/golems/wolves when mounting them!
+     * Allow players to control villagers/golems/wolves using saddle when
+     * mounting them! This listener assumes that the player ALREADY enters the
+     * mount.
      */
     @EventHandler
     public void onPlayerTarget(PlayerInteractEvent event) {
+        if (flag) {
+            // Work around to prevent executing onPlayerTarget() right after onPlayerDropSaddle()
+
+            flag = false;
+            return;
+        }
+
         if (event.getMaterial() == Material.SADDLE && event.getHand() == EquipmentSlot.HAND) {
             Player player = event.getPlayer();
             if (player.isInsideVehicle()) {
                 Entity mount = player.getVehicle();
-                if (mount instanceof Villager || mount instanceof Wolf || mount instanceof IronGolem) {
-                    if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                if (mount instanceof Mob && !(mount instanceof Monster)) {
+                    if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) {
                         // Push the mount
 
-                        Vector direction = player.getLocation().getDirection();
-                        mount.setVelocity(direction.multiply(pushScalar));
+                        if (mount.isOnGround()) {
+                            pushMount(player, mount);
+                        }
 
-                    } else if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) {
+                    } else if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
                         // Walk the mount
 
-                        Block targetBlock = player.getTargetBlock(longestSightLine);
-                        if (targetBlock != null) {
-                            // Set destination for path finder
-                            boolean success = ((Mob) mount).getPathfinder().moveTo(targetBlock.getLocation());
-
-                            // Prompt player the information about path finder
-                            if (success) {
-                                player.sendActionBar(plugin.getMessage(player, "better-villager.move-to-destination", "location", ACFBukkitUtil.formatLocation(targetBlock.getLocation())));
-                            } else {
-                                player.sendActionBar(plugin.getMessage(player, "better-villager.cannot-find-path"));
-                            }
-
-                            // Create particles on destination
-                            player.getWorld().spawnParticle(Particle.LAVA, targetBlock.getLocation(), particleCount);
-                        }
+                        setGoal(player, (Mob) mount);
                     }
                 }
             }
         }
     }
 
-//    /**
-//     * After the player mounts the villager, we temporarily enable the villager
-//     * to pass/open doors.
-//     */
-//    @EventHandler
-//    public void onPlayerMountVillager(EntityMountEvent event) {
-//        Entity mount = event.getMount();
-//        if (mount instanceof Villager && event.getEntity() instanceof Player) {
-//            ((Villager) mount).setAware(false);
-//        }
-//    }
-//
-//    /**
-//     * After the player dismounts the villager, we disable the villager to
-//     * pass/open doors (back to our initial settings).
-//     */
-//    @EventHandler
-//    public void onPlayerDismountVillager(EntityDismountEvent event) {
-//        Entity dismounted = event.getDismounted();
-//        if (dismounted instanceof Villager && event.getEntity() instanceof Player) {
-//            ((Villager) dismounted).setAware(true);
-//        }
-//    }
+    /**
+     * Allow the player to make the mount jump if the player tries to drop the
+     * saddle in their hand.
+     */
+    @EventHandler
+    public void onPlayerDropSaddle(PlayerDropItemEvent event) {
+        if (event.getItemDrop().getItemStack().getType() == Material.SADDLE && event.getPlayer().getVehicle() instanceof LivingEntity) {
+            event.setCancelled(true);
+            Player player = event.getPlayer();
+            Entity vehicle = player.getVehicle();
+            if (vehicle instanceof Villager) {
+                flag = true;
+                if (((Villager) vehicle).isAware()) {
+                    ((Villager) vehicle).setAware(false);
+                    vehicle.getVelocity().zero(); // Immediately stop this mount
+                    vehicle.playEffect(EntityEffect.VILLAGER_ANGRY);
+                    player.sendActionBar(plugin.getMessage(player, "better-villager.aware-status", "status", "关"));
+                } else {
+                    ((Villager) vehicle).setAware(true);
+                    vehicle.playEffect(EntityEffect.VILLAGER_HAPPY);
+                    player.sendActionBar(plugin.getMessage(player, "better-villager.aware-status", "status", "开"));
+                }
+            }
+        }
+    }
+
+    /**
+     * Convenience method.
+     * <p>
+     * Push the mount towards where the player is looking at.
+     */
+    private void pushMount(Player player, Entity mount) {
+        Vector direction = player.getLocation().getDirection().multiply(pushScalar);
+        player.playSound(player.getLocation(), Sound.BLOCK_SNOW_HIT, 1F, 0F);
+        mount.setVelocity(direction);
+    }
+
+    /**
+     * Convenience method.
+     * <p>
+     * Set the goal of the mount to where the player is looking at.
+     */
+    private void setGoal(Player player, Mob mount) {
+        Block targetBlock = player.getTargetBlock(longestSightLine);
+        if (targetBlock != null) {
+            Pathfinder pathfinder = mount.getPathfinder();
+            // Temporarily allow the mount to pass/open doors
+//            pathfinder.setCanPassDoors(true);
+//            pathfinder.setCanOpenDoors(true);
+            boolean success = pathfinder.moveTo(targetBlock.getLocation());
+            if (success) {
+                player.sendActionBar(plugin.getMessage(player, "better-villager.move-to-destination", "location", ACFBukkitUtil.formatLocation(targetBlock.getLocation())));
+            } else {
+                player.sendActionBar(plugin.getMessage(player, "better-villager.cannot-find-path"));
+            }
+            // After the mob got its path, disable it to pass/open doors again
+//            pathfinder.setCanPassDoors(false);
+//            pathfinder.setCanOpenDoors(false);
+
+            // Create particles on destination
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_CELEBRATE, 0.5F, 0F);
+            player.getWorld().spawnParticle(Particle.LAVA, targetBlock.getLocation(), particleCount);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerMountVillager(EntityMountEvent event) {
+        if (event.getMount() instanceof Villager) {
+            ((Villager) event.getMount()).setAware(false);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDismountVillager(EntityDismountEvent event) {
+        if (event.getDismounted() instanceof Villager) {
+            ((Villager) event.getDismounted()).setAware(true);
+        }
+    }
 
     /**
      * Prevent wolves from sitting.

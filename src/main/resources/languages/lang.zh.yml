@@ -4,13 +4,14 @@ inventory-manager:
 smart-loot:
   exp-gained: "你获得了 {exp} 经验!"
 smart-kit:
-  premium-level-required: "你需要达到 {level_required} 级才可以选择顶级职业 (当前等级: {current_level})"
+  premium-level-required: "你需要达到 {level-required} 级才可以选择顶级职业 (当前等级: {current-level})"
   kit-in-blacklist: "你不能选择这个职业!"
   tag-format: "&f[&a{kit}&f]"
 better-villager:
   cry-message: "{villager} -> 有只僵尸在打我,快来人救救我!"
   cannot-find-path: "无法前往目的地..."
   move-to-destination: "正在命令坐骑前往 {location}"
+  aware-status: "&c&l当前坐骑AI: &e&l{status}"
 reward-manager:
   damage-summary: "&7第 &f{wave-number}&7 波尸潮刚刚波结束了! 各位勇士们总共对僵尸们造成了 &c{damage-done}&7 点伤害...
   村民们都感激不尽! &6每个&7 村民都决定赠送 &6{bottle-amount}&7 个 &e经验瓶&7 给大家, 快去村民那领取馈赠吧~"
