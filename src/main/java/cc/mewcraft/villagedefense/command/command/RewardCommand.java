@@ -36,17 +36,21 @@ public class RewardCommand extends AbstractCommand {
                 .handler(context -> {
                     double value = context.get("value");
                     rewardManager.setDamageDivisor(value);
-                    context.getSender().sendMessage(VDA.lang().component("msg_set_total_damage_divisor"));
+                    context.getSender().sendMessage(VDA.lang().component(
+                            "msg_set_total_damage_divisor"
+                    ));
                 })
                 .build();
 
         Command<CommandSender> getTotalDamage = rewardLiteral
                 .literal("get")
-                .literal("totalDamage")
-                .handler(context -> context.getSender().sendMessage(VDA.lang().component(
-                        "msg_current_total_damage_dealt",
-                        "amount", Double.toString(rewardManager.getDamageDivisor())
-                )))
+                .literal("total.damage")
+                .handler(context -> {
+                    context.getSender().sendMessage(VDA.lang().component(
+                            "msg_current_total_damage_dealt",
+                            "amount", Double.toString(rewardManager.getTotalDamageDealt())
+                    ));
+                })
                 .build();
 
         manager.register(List.of(setDamageDivisor, getTotalDamage));

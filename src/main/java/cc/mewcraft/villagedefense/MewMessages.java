@@ -54,12 +54,12 @@ public class MewMessages {
         return lang;
     }
 
-    public String toLegacy(Component componentLike) {
-        return LegacyComponentSerializer.legacySection().serialize(componentLike);
+    public String toLegacy(Component component) {
+        return LegacyComponentSerializer.legacySection().serialize(component);
     }
 
     public String translate(Translatable translatable) {
-        return toLegacy(Component.translatable(translatable));
+        return toLegacy(Component.translatable(translatable).asComponent());
     }
 
 }

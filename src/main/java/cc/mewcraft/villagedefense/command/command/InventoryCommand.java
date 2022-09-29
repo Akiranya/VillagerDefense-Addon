@@ -8,6 +8,7 @@ import cloud.commandframework.Command;
 import cloud.commandframework.arguments.standard.BooleanArgument;
 import cloud.commandframework.arguments.standard.EnumArgument;
 import cloud.commandframework.bukkit.parsers.MaterialArgument;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -38,13 +39,20 @@ public class InventoryCommand extends AbstractCommand {
                 .literal("toggle")
                 .argument(BooleanArgument.optional("status"))
                 .handler(context -> {
-                    boolean status = context.get("toggle");
+                    CommandSender sender = context.getSender();
+                    boolean status = context.get("status");
                     if (status) {
                         inventoryManager.enable();
-                        context.getSender().sendMessage(VDA.lang().component("msg_set_inventory_manager", "status", VDA.lang().raw("msg_enabled")));
+                        sender.sendMessage(VDA.lang().component(sender,
+                                "msg_set_inventory_manager",
+                                "status", VDA.lang().raw("msg_enabled")
+                        ));
                     } else {
                         inventoryManager.disable();
-                        context.getSender().sendMessage(VDA.lang().component("msg_set_inventory_manager", "status", VDA.lang().raw("msg_disabled")));
+                        sender.sendMessage(VDA.lang().component(sender,
+                                "msg_set_inventory_manager",
+                                "status", VDA.lang().raw("msg_disabled")
+                        ));
                     }
                 })
                 .build();
@@ -81,10 +89,10 @@ public class InventoryCommand extends AbstractCommand {
 
                     if (mat != null) {
                         inventoryManager.addWhitelist(action, mat);
-                        sender.sendMessage(VDA.lang().component(sender,
-                                "msg_added_to_whitelist",
-                                "value", VDA.lang().translate(mat)
-                        ));
+                        Component matComponent = Component.translatable(mat.translationKey());
+                        sender.sendMessage(
+                                Component.text(VDA.lang().raw(sender, "msg_added_to_whitelist")).replaceText(builder -> builder.matchLiteral("{value}").replacement(matComponent))
+                        );
                     }
                 })
                 .build();
@@ -118,10 +126,10 @@ public class InventoryCommand extends AbstractCommand {
 
                     if (mat != null) {
                         inventoryManager.removeWhitelist(action, mat);
-                        sender.sendMessage(VDA.lang().component(sender,
-                                "msg_removed_from_whitelist",
-                                "value", VDA.lang().translate(mat)
-                        ));
+                        Component matComponent = Component.translatable(mat.translationKey());
+                        sender.sendMessage(
+                                Component.text(VDA.lang().raw(sender, "msg_removed_from_whitelist")).replaceText(builder -> builder.matchLiteral("{value}").replacement(matComponent))
+                        );
                     }
                 })
                 .build();
