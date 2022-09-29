@@ -95,10 +95,14 @@ public class SmartLootCommand extends AbstractCommand {
                 .literal("min.damage.requirement")
                 .argument(DoubleArgument.<CommandSender>newBuilder("damage")
                         .withMin(0)
-                        .asRequired())
+                        .asOptional())
                 .handler(context -> {
-                    double damage = context.get("damage");
-                    smartLoot.setMinimumDamageRequirement(damage);
+                    Optional<Double> damage = context.getOptional("damage");
+                    damage.ifPresent(smartLoot::setMinimumDamageRequirement);
+                    context.getSender().sendMessage(VDA.lang().component(
+                            "msg_set_experience_reward_minimum_requirement",
+                            "amount", Double.toString(smartLoot.getMinimumDamageRequirement())
+                    ));
                 })
                 .build();
 
