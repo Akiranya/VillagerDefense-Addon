@@ -54,7 +54,7 @@ public class BetterFriends extends Module {
     public BetterFriends() {
         CommentedConfigurationNode root = VDA.config().node("better-friends");
 
-        // Spawn healing potions when upgrading a entity
+        // Spawn healing potions when upgrading an entity
         healPotionCount = root.node("healing-potion-count-when-upgrade").getInt(10);
 
         // Projectiles from players can pass through specific entities
