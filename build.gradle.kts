@@ -73,7 +73,7 @@ indra {
 }
 
 bukkit {
-    main = "cc.mewcraft.villagedefense.VillageDefenseAddon"
+    main = "cc.mewcraft.villagedefense.VDA"
     name = project.name
     apiVersion = "1.17"
     authors = listOf("Nailm")
