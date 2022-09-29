@@ -1,8 +1,0 @@
-name: VillageDefenseEnhancement
-main: co.mcsky.villagedefensenhancement.VillageDefenseEnhancement
-version: 2.0
-api-version: 1.13
-depend: [VillageDefense, NametagEdit]
-author: Nailm
-prefix: VillageDefenseEnhancement
-website: https://mimaru.me

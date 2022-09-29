@@ -1,18 +1,37 @@
-inventory-manager:
-  cannot-pickup: "不能捡起该物品."
-  cannot-drop: "不能丢弃该物品."
-smart-loot:
-  exp-gained: "你获得了 {exp} 经验!"
-smart-kit:
-  premium-level-required: "你需要达到 {level-required} 级才可以选择顶级职业 (当前等级: {current-level})"
-  cannot-select-kit: "&e&l只能在观战(死亡)时选择职业!"
-  kit-in-blacklist: "你不能选择这个职业!"
-  tag-format: "&f[&a{kit}&f]"
-better-villager:
-  cry-message: "{villager} -> 有只僵尸在打我,快来人救救我!"
-  cannot-find-path: "无法前往目的地..."
-  move-to-destination: "正在命令坐骑前往 {location}"
-  aware-status: "&c&l当前坐骑AI: &e&l{status}"
-reward-manager:
-  damage-summary: "&7第 &f{wave-number}&7 波尸潮刚刚波结束了! 各位勇士们总共对僵尸们造成了 &c{damage-done}&7 点伤害...
+# Internal
+msg_enabled: "开"
+msg_disabled: "关"
+msg_plugin_reloaded: "{plugin} {version} 已重新载入!"
+error_arena_not_found: "没有叫做 {arena} 的房间"
+
+# PlayerDispatcher
+msg_forced_join_player: "已强制指定玩家加入房间 {arena}"
+msg_forced_leave_player: "已强制指定玩家离开房间"
+
+# InventoryManager
+error_cannot_pickup_this_item: "不能捡起该物品"
+error_cannot_drop_this_item: "不能丢弃该物品"
+msg_set_inventory_manager: "已设置背包管理器的状态为 {status}"
+
+# SmartKit
+error_cannot_select_kit_for_not_enough_levels: "你需要达到 {level-required} 级才可以选择顶级职业 (当前等级: {current-level})"
+error_cannot_select_kit_when_spectating: "你只能在观战(死亡)时选择职业!"
+error_cannot_select_kit_in_blacklist: "该职业已被禁用!"
+msg_tag_format: "&f[&a{kit}&f]"
+msg_gained_experience: "你获得了 {exp} 点额外经验!"
+
+# SmartLoot
+msg_set_melee_attack_vanilla_experience_reward: "近战攻击获得经验已设置为: {amount}"
+msg_set_melee_attack_kit_experience_reward: "近战攻击获得经验乘数(职业): {amount}"
+msg_set_ranged_attack_vanilla_experience_reward: "远程攻击获得经验: {amount}"
+msg_set_ranged_attack_kit_experience_reward: "远程攻击获得经验乘数(职业): {amount}"
+msg_set_experience_reward_minimum_requirement: "获得经验所需最小伤害: {amount}"
+
+# BetterFriends
+msg_villager_being_hurt: "{damagee} -> 有只僵尸在打我,快来人救救我!"
+
+# RewardManager
+msg_set_total_damage_divisor: "总伤害除数已设置为: {amount}"
+msg_current_total_damage_dealt: "当前造成的总伤害: {amount}"
+msg_damage_summary_when_wave_ends: "&7第 &f{wave-number}&7 波尸潮刚刚波结束了! 各位勇士们总共对僵尸们造成了 &c{damage-done}&7 点伤害...
   村民们都感激不尽! &6每个&7 村民都决定赠送 &6{bottle-amount}&7 个 &e经验瓶&7 给大家, 快去村民那领取馈赠吧~"
