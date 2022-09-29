@@ -67,10 +67,11 @@ public class InventoryCommand extends AbstractCommand {
                     Optional<Material> material = context.getOptional("material");
 
                     Material mat = null;
+                    CommandSender sender = context.getSender();
                     if (material.isPresent()) {
                         mat = material.get();
                     } else {
-                        if (context.getSender() instanceof Player player) {
+                        if (sender instanceof Player player) {
                             Material type = player.getInventory().getItemInMainHand().getType();
                             if (!type.isAir()) {
                                 mat = type;
@@ -80,6 +81,10 @@ public class InventoryCommand extends AbstractCommand {
 
                     if (mat != null) {
                         inventoryManager.addWhitelist(action, mat);
+                        sender.sendMessage(VDA.lang().component(sender,
+                                "msg_added_to_whitelist",
+                                "value", VDA.lang().translate(mat)
+                        ));
                     }
                 })
                 .build();
@@ -98,11 +103,12 @@ public class InventoryCommand extends AbstractCommand {
                     InventoryManager.Action action = context.get("action");
                     Optional<Material> material = context.getOptional("material");
 
+                    CommandSender sender = context.getSender();
                     Material mat = null;
                     if (material.isPresent()) {
                         mat = material.get();
                     } else {
-                        if (context.getSender() instanceof Player player) {
+                        if (sender instanceof Player player) {
                             Material type = player.getInventory().getItemInMainHand().getType();
                             if (!type.isAir()) {
                                 mat = type;
@@ -112,10 +118,15 @@ public class InventoryCommand extends AbstractCommand {
 
                     if (mat != null) {
                         inventoryManager.removeWhitelist(action, mat);
+                        sender.sendMessage(VDA.lang().component(sender,
+                                "msg_removed_from_whitelist",
+                                "value", VDA.lang().translate(mat)
+                        ));
                     }
                 })
                 .build();
 
         manager.register(List.of(toggle, show, add, remove));
     }
+
 }

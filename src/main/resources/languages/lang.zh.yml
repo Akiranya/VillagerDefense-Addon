@@ -12,6 +12,8 @@ msg_forced_leave_player: "已强制指定玩家离开房间"
 error_cannot_pickup_this_item: "不能捡起该物品"
 error_cannot_drop_this_item: "不能丢弃该物品"
 msg_set_inventory_manager: "已设置背包管理器的状态为 {status}"
+msg_added_to_whitelist: "{value} 已添加到白名单"
+msg_removed_from_whitelist: "{value} 已从白名单移除"
 
 # SmartKit
 error_cannot_select_kit_for_not_enough_levels: "你需要达到 {level-required} 级才可以选择顶级职业 (当前等级: {current-level})"
@@ -21,11 +23,11 @@ msg_tag_format: "&f[&a{kit}&f]"
 msg_gained_experience: "你获得了 {exp} 点额外经验!"
 
 # SmartLoot
-msg_set_melee_attack_vanilla_experience_reward: "近战攻击获得经验已设置为: {amount}"
-msg_set_melee_attack_kit_experience_reward: "近战攻击获得经验乘数(职业): {amount}"
-msg_set_ranged_attack_vanilla_experience_reward: "远程攻击获得经验: {amount}"
-msg_set_ranged_attack_kit_experience_reward: "远程攻击获得经验乘数(职业): {amount}"
-msg_set_experience_reward_minimum_requirement: "获得经验所需最小伤害: {amount}"
+msg_set_melee_attack_vanilla_experience_reward: "近战攻击获得原版经验 现在是: {amount}"
+msg_set_melee_attack_kit_experience_reward: "近战攻击获得职业经验 现在是: {amount}"
+msg_set_ranged_attack_vanilla_experience_reward: "远程攻击获得原版经验 现在是: {amount}"
+msg_set_ranged_attack_kit_experience_reward: "远程攻击获得职业经验 现在是: {amount}"
+msg_set_experience_reward_minimum_requirement: "获得经验所需最低伤害: {amount}"
 
 # BetterFriends
 msg_villager_being_hurt: "{damagee} -> 有只僵尸在打我,快来人救救我!"

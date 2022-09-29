@@ -3,6 +3,8 @@ package cc.mewcraft.villagedefense;
 import de.themoep.utils.lang.bukkit.LanguageManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.translation.Translatable;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -50,6 +52,14 @@ public class MewMessages {
 
     public LanguageManager internal() {
         return lang;
+    }
+
+    public String toLegacy(Component componentLike) {
+        return LegacyComponentSerializer.legacySection().serialize(componentLike);
+    }
+
+    public String translate(Translatable translatable) {
+        return toLegacy(Component.translatable(translatable));
     }
 
 }
