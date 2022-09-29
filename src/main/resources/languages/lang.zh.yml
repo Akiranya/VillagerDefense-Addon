@@ -30,7 +30,7 @@ msg_set_ranged_attack_kit_experience_reward: "远程攻击获得职业经验 现
 msg_set_experience_reward_minimum_requirement: "获得经验所需最低伤害: {amount}"
 
 # BetterFriends
-msg_villager_being_hurt: "{damagee} -> 有只僵尸在打我,快来人救救我!"
+msg_villager_being_hurt: "{damagee} -> 我受伤了，快来人救救我！"
 
 # RewardManager
 msg_set_total_damage_divisor: "总伤害除数已设置为: {amount}"
