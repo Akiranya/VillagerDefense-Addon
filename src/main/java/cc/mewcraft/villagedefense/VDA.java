@@ -51,7 +51,6 @@ public class VDA extends ExtendedJavaPlugin {
 
     @Override
     public void disable() {
-        config.save();
     }
 
     @Override
