@@ -106,8 +106,8 @@ public class RewardManager extends Module {
     }
 
     /**
-     * If the zombie is healed, invalidate equal amount from the total damage done by players. This prevents the case where the player could farm
-     * coins by healing & damaging zombies back and forth.
+     * If the zombie is healed, invalidate equal amount from the total damage done by players. This prevents the case
+     * where the player could farm coins by healing and damaging zombies back and forth.
      */
     @EventHandler
     public void onZombieRegainHealthByPlayer(EntityRegainHealthEvent event) {

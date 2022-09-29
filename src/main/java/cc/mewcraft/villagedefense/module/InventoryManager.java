@@ -96,15 +96,27 @@ public class InventoryManager extends Module {
 
     public void addWhitelist(Action actionType, Material mat) {
         switch (actionType) {
-            case DROP -> sync(() -> dropWhitelist.add(mat), dropWhitelist, "inventory-manager", "drop-whitelist");
-            case PICKUP -> sync(() -> pickupWhitelist.add(mat), pickupWhitelist, "inventory-manager", "pickup-whitelist");
+            case DROP -> sync(
+                    () -> dropWhitelist.add(mat), dropWhitelist,
+                    "inventory-manager", "drop-whitelist"
+            );
+            case PICKUP -> sync(
+                    () -> pickupWhitelist.add(mat), pickupWhitelist,
+                    "inventory-manager", "pickup-whitelist"
+            );
         }
     }
 
     public void removeWhitelist(Action actionType, Material mat) {
         switch (actionType) {
-            case DROP -> sync(() -> dropWhitelist.remove(mat), dropWhitelist, "inventory-manager", "drop-whitelist");
-            case PICKUP -> sync(() -> pickupWhitelist.remove(mat), pickupWhitelist, "inventory-manager", "pickup-whitelist");
+            case DROP -> sync(
+                    () -> dropWhitelist.remove(mat), dropWhitelist,
+                    "inventory-manager", "drop-whitelist"
+            );
+            case PICKUP -> sync(
+                    () -> pickupWhitelist.remove(mat), pickupWhitelist,
+                    "inventory-manager", "pickup-whitelist"
+            );
         }
     }
 

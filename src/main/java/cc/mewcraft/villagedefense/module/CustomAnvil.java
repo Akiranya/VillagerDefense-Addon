@@ -7,7 +7,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerLevelChangeEvent;
 
 /**
- * New Feature: don't consume levels when using anvil & unbroken anvil
+ * New Feature: don't consume levels when using anvil and unbroken anvil
  */
 public class CustomAnvil extends Module {
 

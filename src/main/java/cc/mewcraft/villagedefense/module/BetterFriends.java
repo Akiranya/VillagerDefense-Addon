@@ -112,7 +112,8 @@ public class BetterFriends extends Module {
     }
 
     /**
-     * New Feature: allow players to leash villagers (this should mimic the vanilla behaviors as if leashing/unleashing a cow, for example).
+     * New Feature: allow players to leash villagers (this should mimic the vanilla behaviors as if leashing/unleashing
+     * a cow, for example).
      */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onLeashFriendlyCreature(PlayerLeashEntityEvent event) {

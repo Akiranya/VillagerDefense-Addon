@@ -60,7 +60,7 @@ public class SmartLoot extends Module {
     }
 
     /**
-     * New Feature: give exp & level to attacker on each damage.
+     * New Feature: give exp and level to attacker on each damage.
      */
     @EventHandler
     public void onEntityDamage(EntityDamageByEntityEvent event) {
