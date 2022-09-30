@@ -10,7 +10,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.spongepowered.configurate.CommentedConfigurationNode;
@@ -134,10 +133,6 @@ public class SmartLoot extends Module {
                     if (distanceSquared < minDistance) {
                         dropReceiver = player;
                     }
-                }
-                EntityDamageEvent lastDamageCause = event1.getEntity().getLastDamageCause();
-                if (lastDamageCause != null) {
-                    LOG.info("Not specifically handled damage cause: " + lastDamageCause.getCause());
                 }
             }
 
