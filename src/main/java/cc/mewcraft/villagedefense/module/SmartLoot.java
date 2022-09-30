@@ -3,19 +3,17 @@ package cc.mewcraft.villagedefense.module;
 import cc.mewcraft.villagedefense.VDA;
 import lombok.CustomLog;
 import lombok.Getter;
-import me.lucko.helper.Schedulers;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.loot.LootContext;
-import org.bukkit.loot.LootTable;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.inventory.ItemStack;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
-
-import java.util.Random;
 
 @CustomLog
 public class SmartLoot extends Module {
@@ -87,18 +85,38 @@ public class SmartLoot extends Module {
                         "exp", Double.toString(rangedVanillaExp)));
 
                 // Give loots if the damaged monster is dead
-                Schedulers.sync().run(() -> {
-                    if (entity.isDead()) {
-                        LootContext lootContext = new LootContext.Builder(entity.getLocation())
-                                .killer(player)
-                                .lootedEntity(entity)
-                                .build();
-                        LootTable lootTable = ((Monster) entity).getLootTable();
-                        if (lootTable != null) {
-                            lootTable.populateLoot(new Random(), lootContext).forEach(item -> player.getInventory().addItem(item));
-                        }
-                    }
-                });
+            }
+        }
+    }
+
+    /**
+     * New Feature: drops go directly into player inventory.
+     */
+    @EventHandler
+    public void onMonsterDeath(EntityDeathEvent event1) {
+        if (event1.getEntity() instanceof Monster monster && monster.getLastDamageCause() instanceof EntityDamageByEntityEvent event2) {
+
+            Player dropReceiver = null;
+            if (event2.getDamager() instanceof Player player) {
+                // Killed by melee attack
+                dropReceiver = player;
+            } else if (event2.getDamager() instanceof Projectile projectile && projectile.getShooter() instanceof Player player) {
+                // Killed by ranged attack
+                dropReceiver = player;
+            } else {
+                EntityDamageEvent lastDamageCause = event1.getEntity().getLastDamageCause();
+                if (lastDamageCause != null) {
+                    LOG.info("Unhandled damage cause: " + lastDamageCause.getCause());
+                }
+            }
+
+            if (dropReceiver != null) {
+                for (ItemStack item : event1.getDrops()) {
+                    dropReceiver.getInventory().addItem(item);
+                }
+                dropReceiver.giveExp(event1.getDroppedExp());
+                event1.getDrops().clear();
+                event1.setDroppedExp(0);
             }
         }
     }
