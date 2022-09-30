@@ -15,6 +15,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
+import plugily.projects.villagedefense.api.StatsStorage;
 
 import java.util.Collection;
 import java.util.EnumSet;
@@ -144,6 +145,7 @@ public class SmartLoot extends Module {
                     dropReceiver.getInventory().addItem(item);
                 }
                 dropReceiver.giveExp(event1.getDroppedExp());
+                VDA.api().getUserManager().getUser(dropReceiver).addStat(StatsStorage.StatisticType.ORBS, event1.getDroppedExp());
                 event1.getDrops().clear();
                 event1.setDroppedExp(0);
             }
