@@ -3,6 +3,7 @@ package cc.mewcraft.villagedefense.module;
 import cc.mewcraft.villagedefense.VDA;
 import lombok.CustomLog;
 import lombok.Getter;
+import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
@@ -15,6 +16,10 @@ import org.bukkit.inventory.ItemStack;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.List;
+
 @CustomLog
 public class SmartLoot extends Module {
 
@@ -23,6 +28,7 @@ public class SmartLoot extends Module {
     @Getter private int meleeKitExp;
     @Getter private int rangedKitExp;
     @Getter private double minimumDamageRequirement;
+    private EnumSet<Material> monsterDropWhitelist;
 
     public SmartLoot() {
         // Configuration values
@@ -32,6 +38,16 @@ public class SmartLoot extends Module {
         rangedVanillaExp = root.node("ranged-vanilla-exp").getInt(2);
         rangedKitExp = root.node("ranged-kit-exp").getInt(2);
         minimumDamageRequirement = root.node("minimum-damage-requirement").getDouble(2D);
+
+        CommentedConfigurationNode node1 = root.node("monster-drop-whitelist");
+        try {
+            monsterDropWhitelist = EnumSet.copyOf(node1.getList(Material.class, List.of(
+                    Material.ROTTEN_FLESH
+            )));
+        } catch (SerializationException e) {
+            monsterDropWhitelist = EnumSet.noneOf(Material.class);
+            LOG.warn("Failed to read config: " + node1.path() + ". Nothing will drop from monsters!", e);
+        }
 
         // Register this listener
         registerListener();
@@ -90,11 +106,15 @@ public class SmartLoot extends Module {
     }
 
     /**
-     * New Feature: drops go directly into player inventory.
+     * <p>New Feature 1: drops go directly into player inventory.
+     * <p>New Feature 2: monsters only drop items in whitelist.
      */
     @EventHandler
     public void onMonsterDeath(EntityDeathEvent event1) {
         if (event1.getEntity() instanceof Monster monster && monster.getLastDamageCause() instanceof EntityDamageByEntityEvent event2) {
+
+            // Only drop items in whitelist
+            event1.getDrops().removeIf(item -> !monsterDropWhitelist.contains(item.getType()));
 
             Player dropReceiver = null;
             if (event2.getDamager() instanceof Player player) {
@@ -104,9 +124,18 @@ public class SmartLoot extends Module {
                 // Killed by ranged attack
                 dropReceiver = player;
             } else {
+                // We don't know how it was killed, so pick the nearest player
+                double minDistance = Double.MAX_VALUE;
+                Collection<Player> nearby = monster.getLocation().getNearbyEntitiesByType(Player.class, 16);
+                for (Player player : nearby) {
+                    double distanceSquared = monster.getLocation().distanceSquared(player.getLocation());
+                    if (distanceSquared < minDistance) {
+                        dropReceiver = player;
+                    }
+                }
                 EntityDamageEvent lastDamageCause = event1.getEntity().getLastDamageCause();
                 if (lastDamageCause != null) {
-                    LOG.info("Unhandled damage cause: " + lastDamageCause.getCause());
+                    LOG.info("Not specifically handled damage cause: " + lastDamageCause.getCause());
                 }
             }
 
