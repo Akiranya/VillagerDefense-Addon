@@ -16,6 +16,7 @@ import org.bukkit.inventory.ItemStack;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 import plugily.projects.villagedefense.api.StatsStorage;
+import plugily.projects.villagedefense.handlers.language.Messages;
 
 import java.util.Collection;
 import java.util.EnumSet;
@@ -141,11 +142,17 @@ public class SmartLoot extends Module {
             }
 
             if (dropReceiver != null) {
+                // Transfer items
                 for (ItemStack item : event1.getDrops()) {
                     dropReceiver.getInventory().addItem(item);
                 }
+
+                // Transfer exp & orbs
                 dropReceiver.giveExp(event1.getDroppedExp());
                 VDA.api().getUserManager().getUser(dropReceiver).addStat(StatsStorage.StatisticType.ORBS, event1.getDroppedExp());
+                dropReceiver.sendMessage(VDA.api().getChatManager().colorMessage(Messages.ORBS_PICKUP).replace("%number%", Integer.toString(event1.getDroppedExp())));
+
+                // Clear original drops
                 event1.getDrops().clear();
                 event1.setDroppedExp(0);
             }
