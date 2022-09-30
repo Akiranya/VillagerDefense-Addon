@@ -36,7 +36,7 @@ public class BetterShooter extends Module {
 
         // All bows are infinite!
         if (bow != null && !bow.containsEnchantment(Enchantment.ARROW_INFINITE)) {
-            bow.addEnchantment(Enchantment.ARROW_INFINITE, 10);
+            bow.addEnchantment(Enchantment.ARROW_INFINITE, 1);
         }
 
         if (event.getProjectile() instanceof Projectile projectile &&
