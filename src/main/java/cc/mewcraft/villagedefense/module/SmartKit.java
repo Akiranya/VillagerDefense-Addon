@@ -13,6 +13,7 @@ import plugily.projects.villagedefense.api.StatsStorage;
 import plugily.projects.villagedefense.api.event.game.VillageGameLeaveAttemptEvent;
 import plugily.projects.villagedefense.api.event.game.VillageGameStopEvent;
 import plugily.projects.villagedefense.api.event.player.VillagePlayerChooseKitEvent;
+import plugily.projects.villagedefense.arena.ArenaState;
 import plugily.projects.villagedefense.kits.KitRegistry;
 import plugily.projects.villagedefense.kits.basekits.Kit;
 import plugily.projects.villagedefense.kits.basekits.PremiumKit;
@@ -34,6 +35,7 @@ import java.util.Set;
 public class SmartKit extends Module {
 
     private final int levelRequired;
+    private final boolean showKitAboveHead;
     private final Set<Class<? extends Kit>> kitList;
 
     public SmartKit() {
@@ -52,6 +54,7 @@ public class SmartKit extends Module {
 
         // Configuration values
         levelRequired = VDA.config().node("smart-kit", "premium-kit-level-required").getInt(12);
+        showKitAboveHead = VDA.config().node("smart-kit", "show-kit-above-head").getBoolean(false);
 
         // Register this listener
         registerListener();
@@ -64,7 +67,7 @@ public class SmartKit extends Module {
         UserManager userManager = VDA.api().getUserManager();
 
         // New Feature: don't allow to select kit while arena is fighting.
-        if (event.getArena().isFighting() && !userManager.getUser(player).isSpectator()) {
+        if (event.getArena().getArenaState() == ArenaState.IN_GAME && !userManager.getUser(player).isSpectator()) {
             // Only allow to do so during spectating and before the first wave.
 
             event.setCancelled(true);
@@ -108,19 +111,25 @@ public class SmartKit extends Module {
 
     @EventHandler
     public void onArenaEnd(VillageGameStopEvent event) {
-        for (Player player : event.getArena().getPlayers()) {
-            NametagEdit.getApi().clearNametag(player);
+        if (VDA.useNametagEdit && showKitAboveHead) {
+            for (Player player : event.getArena().getPlayers()) {
+                NametagEdit.getApi().clearNametag(player);
+            }
         }
     }
 
     @EventHandler
     public void onPlayerLeave(VillageGameLeaveAttemptEvent event) {
-        NametagEdit.getApi().clearNametag(event.getPlayer());
+        if (VDA.useNametagEdit && showKitAboveHead) {
+            NametagEdit.getApi().clearNametag(event.getPlayer());
+        }
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        NametagEdit.getApi().clearNametag(event.getPlayer());
+        if (VDA.useNametagEdit && showKitAboveHead) {
+            NametagEdit.getApi().clearNametag(event.getPlayer());
+        }
     }
 
     /**

@@ -78,7 +78,7 @@ bukkit {
     apiVersion = "1.17"
     authors = listOf("Nailm")
     depend = listOf("VillageDefense", "helper")
-    softDepend = listOf("Vault")
+    softDepend = listOf("Vault", "NametagEdit")
 }
 
 tasks {

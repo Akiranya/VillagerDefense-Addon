@@ -17,6 +17,9 @@ public class VDA extends ExtendedJavaPlugin {
 
     private static VDA plugin;
 
+    public static boolean useNametagEdit;
+    public static boolean useVault;
+
     private MewMessages lang;
     private MewConfig config;
     @SuppressWarnings({"FieldCanBeLocal", "unused"})
@@ -59,6 +62,10 @@ public class VDA extends ExtendedJavaPlugin {
 
         api = getPlugin("VillageDefense", Main.class);
 
+        // 3rd party plugin hooks
+        useNametagEdit = isPluginPresent("NametagEdit");
+        useVault = isPluginPresent("Vault");
+
         initConfig();
         initLanguage();
         initModules();
@@ -77,6 +84,8 @@ public class VDA extends ExtendedJavaPlugin {
 
     private void initConfig() {
         config = new MewConfig();
+        useVault = config.node("compatibility", "Vault").getBoolean(false);
+        useNametagEdit = config.node("compatibility", "NametagEdit").getBoolean(false);
         config.load();
         config.save();
     }
