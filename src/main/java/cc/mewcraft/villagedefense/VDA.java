@@ -84,9 +84,12 @@ public class VDA extends ExtendedJavaPlugin {
 
     private void initConfig() {
         config = new MewConfig();
+        config.load();
+
+        // Options not related to modules, should go here
         useVault = config.node("compatibility", "Vault").getBoolean(false);
         useNametagEdit = config.node("compatibility", "NametagEdit").getBoolean(false);
-        config.load();
+
         config.save();
     }
 
