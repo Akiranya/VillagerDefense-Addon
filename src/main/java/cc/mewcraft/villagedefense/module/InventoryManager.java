@@ -15,8 +15,6 @@ import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -27,12 +25,15 @@ import static net.kyori.adventure.text.Component.translatable;
 @ParametersAreNonnullByDefault
 public class InventoryManager extends Module {
 
+    private final CommentedConfigurationNode root;
+    private boolean enabled;
     private EnumSet<Material> dropWhitelist;
     private EnumSet<Material> pickupWhitelist;
 
     public InventoryManager() {
-        // Configuration values
-        CommentedConfigurationNode root = VDA.config().node("inventory-manager");
+        root = VDA.config().node("inventory-manager");
+
+        enabled = root.node("enabled").getBoolean();
         try {
             dropWhitelist = EnumSet.copyOf(root.node("drop-whitelist").getList(Material.class, List.of(Material.ROTTEN_FLESH)));
             pickupWhitelist = EnumSet.copyOf(root.node("pickup-whitelist").getList(Material.class, List.of(Material.ROTTEN_FLESH)));
@@ -46,11 +47,13 @@ public class InventoryManager extends Module {
     }
 
     public void enable() {
+        enabled = true;
         VDA.instance().registerListener(this);
         LOG.info("InventoryManager is on!");
     }
 
     public void disable() {
+        enabled = false;
         HandlerList.unregisterAll(this);
         LOG.info("InventoryManager is off!");
     }
@@ -67,7 +70,7 @@ public class InventoryManager extends Module {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
         Player player = event.getPlayer();
         if (!player.isOp() &&
@@ -96,55 +99,34 @@ public class InventoryManager extends Module {
 
     public void addWhitelist(Action actionType, Material mat) {
         switch (actionType) {
-            case DROP -> sync(
-                    () -> dropWhitelist.add(mat), dropWhitelist,
-                    "inventory-manager", "drop-whitelist"
-            );
-            case PICKUP -> sync(
-                    () -> pickupWhitelist.add(mat), pickupWhitelist,
-                    "inventory-manager", "pickup-whitelist"
-            );
+            case DROP -> dropWhitelist.add(mat);
+            case PICKUP -> pickupWhitelist.add(mat);
         }
     }
 
     public void removeWhitelist(Action actionType, Material mat) {
         switch (actionType) {
-            case DROP -> sync(
-                    () -> dropWhitelist.remove(mat), dropWhitelist,
-                    "inventory-manager", "drop-whitelist"
-            );
-            case PICKUP -> sync(
-                    () -> pickupWhitelist.remove(mat), pickupWhitelist,
-                    "inventory-manager", "pickup-whitelist"
-            );
+            case DROP -> dropWhitelist.remove(mat);
+            case PICKUP -> pickupWhitelist.remove(mat);
         }
     }
 
     public void showWhitelist(Action actionType, CommandSender sender) {
         sender.sendMessage(text());
         switch (actionType) {
-            case DROP -> dropWhitelist.forEach(e -> sender.sendMessage(text()
-                    .append(text(" ▸ "))
-                    .append(translatable(e.translationKey()))));
-            case PICKUP -> pickupWhitelist.forEach(e -> sender.sendMessage(text()
-                    .append(text(" ▸ "))
-                    .append(translatable(e.translationKey()))));
+            case DROP -> dropWhitelist.forEach(e -> sender.sendMessage(text(" ▸ ").append(translatable(e.translationKey()))));
+            case PICKUP -> pickupWhitelist.forEach(e -> sender.sendMessage(text(" ▸ ").append(translatable(e.translationKey()))));
         }
     }
 
-    /**
-     * A convenience method to enforce updating values in both class fields and the plugin config file.
-     *
-     * @param setter setter which sets the class fields
-     * @param value  the value to be stored in the config file
-     * @param path   the path to which the value to be stored in the config file
-     */
-    private <C extends Collection<Material>> void sync(Runnable setter, C value, Object... path) {
-        setter.run();
+    @Override
+    public void saveConfig() {
         try {
-            VDA.config().node(path).setList(Material.class, new ArrayList<>(value));
+            root.node("enabled").set(enabled);
+            root.node("drop-whitelist").setList(Material.class, dropWhitelist.stream().toList());
+            root.node("pickup-whitelist").setList(Material.class, dropWhitelist.stream().toList());
         } catch (SerializationException e) {
-            LOG.reportException(e);
+            LOG.error("Failed to save config: " + root.path());
         }
         VDA.config().save();
     }

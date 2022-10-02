@@ -6,9 +6,11 @@ import lombok.CustomLog;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.potion.PotionEffectType;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 import plugily.projects.villagedefense.api.StatsStorage;
 import plugily.projects.villagedefense.api.event.game.VillageGameLeaveAttemptEvent;
 import plugily.projects.villagedefense.api.event.game.VillageGameStopEvent;
@@ -31,14 +33,18 @@ import java.util.Set;
 /**
  * A class improving stuff about {@link plugily.projects.villagedefense.kits.basekits.Kit}.
  */
+@SuppressWarnings("FieldCanBeLocal")
 @CustomLog
 public class SmartKit extends Module {
 
+    private final CommentedConfigurationNode root;
     private final int levelRequired;
     private final boolean showKitAboveHead;
     private final Set<Class<? extends Kit>> kitList;
 
     public SmartKit() {
+        root = VDA.config().node("smart-kit");
+
         kitList = Set.of(HeavyTankKit.class, MediumTankKit.class, HardcoreKit.class, PremiumHardcoreKit.class);
 
         // Set default kit to Light Tank
@@ -52,11 +58,9 @@ public class SmartKit extends Module {
             LOG.warn("Cannot replace default kit (KnightKit) because the replacement kit (LightTankKit) is not found");
         }
 
-        // Configuration values
-        levelRequired = VDA.config().node("smart-kit", "premium-kit-level-required").getInt(12);
-        showKitAboveHead = VDA.config().node("smart-kit", "show-kit-above-head").getBoolean(false);
+        levelRequired = root.node("premium-kit-level-required").getInt(12);
+        showKitAboveHead = root.node("show-kit-above-head").getBoolean(false);
 
-        // Register this listener
         registerListener();
     }
 
@@ -109,12 +113,19 @@ public class SmartKit extends Module {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onArenaEnd(VillageGameStopEvent event) {
         if (VDA.useNametagEdit && showKitAboveHead) {
             for (Player player : event.getArena().getPlayers()) {
                 NametagEdit.getApi().clearNametag(player);
             }
+        }
+
+        // Bug fix: sometimes player's health not being reset
+        for (Player player : event.getArena().getPlayers()) {
+            Objects.requireNonNull(
+                    player.getAttribute(Attribute.GENERIC_MAX_HEALTH), "No such attribute: GENERIC_MAX_HEALTH"
+            ).setBaseValue(20D);
         }
     }
 
@@ -141,6 +152,11 @@ public class SmartKit extends Module {
         for (PotionEffectType effect : PotionEffectType.values()) {
             player.removePotionEffect(effect);
         }
+    }
+
+    @Override
+    public void saveConfig() {
+
     }
 
 }

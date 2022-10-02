@@ -2,96 +2,184 @@ package cc.mewcraft.villagedefense.module;
 
 import cc.mewcraft.villagedefense.VDA;
 import lombok.CustomLog;
-import lombok.Getter;
-import me.lucko.helper.Schedulers;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.ThrownExpBottle;
-import org.bukkit.entity.Villager;
-import org.bukkit.entity.Zombie;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Monster;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityRegainHealthEvent;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.util.Vector;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
+import plugily.projects.villagedefense.api.StatsStorage;
+import plugily.projects.villagedefense.api.event.game.VillageGameStopEvent;
 import plugily.projects.villagedefense.api.event.wave.VillageWaveEndEvent;
 import plugily.projects.villagedefense.api.event.wave.VillageWaveStartEvent;
+import plugily.projects.villagedefense.handlers.language.Messages;
 
-import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
-
-import static org.bukkit.entity.EntityType.ARROW;
-import static org.bukkit.entity.EntityType.IRON_GOLEM;
-import static org.bukkit.entity.EntityType.PLAYER;
-import static org.bukkit.entity.EntityType.SPECTRAL_ARROW;
-import static org.bukkit.entity.EntityType.WOLF;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Assume that there is always only one arena running, otherwise bugs happen!
  */
+@SuppressWarnings("FieldCanBeLocal")
 @CustomLog
 public class RewardManager extends Module {
 
-    @Getter private double damageDivisor;
-    @Getter private double totalDamageDealt;
-    private EnumSet<EntityType> damageIncludedEntities;
+    private final CommentedConfigurationNode root;
+
+    private final Map<UUID, Double> damageStats;
 
     public RewardManager() {
-        CommentedConfigurationNode root = VDA.config().node("reward-manager");
+        root = VDA.config().node("reward-manager");
 
-        // A damage divisor, used to convert into rewards
-        damageDivisor = root.node("damage-divisor").getDouble(1000);
-
-        // What types of entity should be included to the total damage calculation
-        CommentedConfigurationNode node1 = root.node("damage-included-entities");
-        try {
-            damageIncludedEntities = EnumSet.copyOf(node1.getList(EntityType.class, List.of(
-                    PLAYER, WOLF, IRON_GOLEM, ARROW, SPECTRAL_ARROW
-            )));
-        } catch (SerializationException e) {
-            damageIncludedEntities = EnumSet.noneOf(EntityType.class);
-            LOG.warn("Failed to read config: " + node1.path() + ". No damage will be logged!", e);
-        }
+        damageStats = new HashMap<>();
 
         registerListener();
     }
 
-    public void setDamageDivisor(double damageDivisor) {
-        sync(() -> this.damageDivisor = damageDivisor, damageDivisor, "reward-manager", "damage-divisor");
-    }
-
     @EventHandler
     public void onWaveStart(VillageWaveStartEvent event) {
-        totalDamageDealt = 0;
+        Set<Player> players = event.getArena().getPlayers();
+        for (Player player : players) {
+            damageStats.remove(player.getUniqueId());
+        }
     }
 
     @EventHandler
     public void onWaveEnd(VillageWaveEndEvent event) {
-        // Take the ceil to ensure at least 1 exp bottle
-        final int bottleAmount = (int) Math.ceil(totalDamageDealt / damageDivisor);
-        VDA.api().getChatManager().broadcastMessage(event.getArena(), VDA.lang().legacy(
-                "msg_damage_summary_when_wave_ends",
-                "wave-number", Integer.toString(event.getWaveNumber() - 1),
-                "damage-done", Integer.toString((int) totalDamageDealt),
-                "bottle-amount", Integer.toString(bottleAmount)
-        ));
-        // Make villagers glow to help players find them
-        event.getArena().getVillagers().forEach(v -> v.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 20 * 20, 1)));
 
-        // Create exp bottles!
-        Schedulers.sync().runRepeating(task -> {
-            if (task.getTimesRan() > bottleAmount) {
-                task.stop();
-                return;
+        String arenaId = event.getArena().getId();
+        Set<Player> players = event.getArena().getPlayers();
+        List<Player> playersLeft = event.getArena().getPlayersLeft();
+        int waveNumber = event.getWaveNumber() - 1; // the API always returns real wave number + 1, so we have to minus 1 to get the correct number
+
+        // ---- Give exp to players based on damage when wave ends ----
+
+        CommentedConfigurationNode damageRewardsNode = root.node(arenaId, "damageRewards");
+        if (damageRewardsNode.node("enabled").getBoolean()) {
+            int unitExp = damageRewardsNode.node("unitExp").getInt();
+            int unitDamage = damageRewardsNode.node("unitDamage").getInt();
+            for (Player player : players) {
+                double damage = damageStats.getOrDefault(player.getUniqueId(), 0D);
+                int unitExpReward = 0;
+                int totalExpReward = 0;
+                try {
+                    unitExpReward = (int) (damage / unitDamage * unitExp);
+                    totalExpReward = unitExpReward * event.getArena().getVillagers().size();
+                } catch (ArithmeticException e) {
+                    LOG.reportException(e);
+                }
+                VDA.api().getChatManager().broadcastMessage(event.getArena(), VDA.lang().legacy(
+                        "msg_damage_summary_when_wave_ends",
+                        "wave-number", Integer.toString(waveNumber),
+                        "damage-done", Integer.toString((int) damage),
+                        "unit-exp", Integer.toString(unitExpReward),
+                        "total-exp", Integer.toString(totalExpReward)
+                ));
+                player.giveExp(totalExpReward);
+                VDA.api().getUserManager().getUser(player).addStat(StatsStorage.StatisticType.ORBS, totalExpReward);
+                player.sendMessage(VDA.api().getChatManager().colorMessage(Messages.ORBS_PICKUP).replace("%number%", Integer.toString(totalExpReward)));
             }
-            for (Villager villager : event.getArena().getVillagers()) {
-                villager.launchProjectile(ThrownExpBottle.class, Vector.getRandom());
+        }
+
+        // ---- Run certain commands when wave ends ----
+
+        CommentedConfigurationNode endWaveNode = root.node(arenaId, "endWave");
+        if (endWaveNode.isMap()) {
+            try {
+                List<String> commandStrings = endWaveNode.node(waveNumber).getList(String.class);
+                if (commandStrings != null) {
+                    for (String str : commandStrings) {
+                        if (str.startsWith("single:")) {
+                            // Only run this command once
+                            // Support placeholders:
+                            //   %wave%
+                            //   %map-name%
+                            //   %arena-id%
+                            //   %player-amount%
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), str
+                                    .substring(7)
+                                    .replace("%wave%", Integer.toString(waveNumber))
+                                    .replace("%map-name%", event.getArena().getMapName())
+                                    .replace("%player-amount%", Integer.toString(players.size()))
+                                    .replace("%player-left%", Integer.toString(playersLeft.size()))
+                            );
+                        } else {
+                            // Run this command for every player
+                            // Support placeholders:
+                            //   %wave%
+                            //   %map-name%
+                            //   %arena-id%
+                            //   %player-amount%
+                            //   %player%
+                            for (Player player : players) {
+                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), str
+                                        .replace("%wave%", Integer.toString(waveNumber))
+                                        .replace("%map-name%", event.getArena().getMapName())
+                                        .replace("%arena-id%", arenaId)
+                                        .replace("%player-amount%", Integer.toString(players.size()))
+                                        .replace("%player-left%", Integer.toString(playersLeft.size()))
+                                        .replace("%player%", player.getName())
+                                );
+                            }
+                        }
+                    }
+                }
+            } catch (SerializationException e) {
+                LOG.reportException(e);
             }
-            // Set the period so that all exp bottles are thrown within 30 sec
-        }, 20 * 5, (long) Math.max(1D, 25D / bottleAmount * 20D));
+        }
+    }
+
+    @EventHandler
+    public void onGameEnd(VillageGameStopEvent event) {
+        String arenaId = event.getArena().getId();
+        CommentedConfigurationNode endGameNode = root.node(arenaId, "endGame");
+        if (endGameNode.isList()) {
+            try {
+                List<String> commandStrings = endGameNode.getList(String.class);
+                if (commandStrings != null) {
+                    for (String str : commandStrings) {
+                        if (str.startsWith("single:")) {
+                            // Only run this command once
+                            // Support placeholders:
+                            //   %map-name%
+                            //   %arena-id%
+                            //   %player-amount%
+                            //   %player-left%
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), str
+                                    .substring(7)
+                                    .replace("%map-name%", event.getArena().getMapName())
+                                    .replace("%arena-id%", event.getArena().getId())
+                                    .replace("%player-amount%", Integer.toString(event.getArena().getPlayers().size()))
+                                    .replace("%player-left%", Integer.toString(event.getArena().getPlayersLeft().size()))
+                            );
+                        } else {
+                            // Run this command for every player
+                            // Support placeholders:
+                            //   %map-name%
+                            //   %arena-id%
+                            //   %player-amount%
+                            //   %player%
+                            for (Player player : event.getArena().getPlayers()) {
+                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), str
+                                        .replace("%map-name%", event.getArena().getMapName())
+                                        .replace("%arena-id%", event.getArena().getId())
+                                        .replace("%player-amount%", Integer.toString(event.getArena().getPlayers().size()))
+                                        .replace("%player-left%", Integer.toString(event.getArena().getPlayersLeft().size()))
+                                        .replace("%player%", player.getName())
+                                );
+                            }
+                        }
+                    }
+                }
+            } catch (SerializationException e) {
+                LOG.reportException(e);
+            }
+        }
     }
 
     /**
@@ -99,37 +187,19 @@ public class RewardManager extends Module {
      */
     @EventHandler
     public void onZombieDamageByPlayer(EntityDamageByEntityEvent event) {
-        Entity damager = event.getDamager();
-        if (event.getEntity() instanceof Zombie && damageIncludedEntities.contains(damager.getType())) {
-            totalDamageDealt += event.getFinalDamage();
+        if (event.getEntity() instanceof Monster &&
+            event.getDamager() instanceof Player player) {
+            damageStats.compute(player.getUniqueId(),
+                    (uuid, damage) -> damage == null
+                            ? event.getFinalDamage()
+                            : damage + event.getFinalDamage()
+            );
         }
     }
 
-    /**
-     * If the zombie is healed, invalidate equal amount from the total damage done by players. This prevents the case
-     * where the player could farm coins by healing and damaging zombies back and forth.
-     */
-    @EventHandler
-    public void onZombieRegainHealthByPlayer(EntityRegainHealthEvent event) {
-        if (event.getEntity() instanceof Zombie) {
-            totalDamageDealt -= event.getAmount();
-        }
+    @Override
+    public void saveConfig() {
+
     }
 
-    /**
-     * A convenience method to enforce updating values in both class fields and the plugin config files.
-     *
-     * @param setter setter which sets the class fields
-     * @param value  the value to be stored in the config file
-     * @param path   the path to which the value to be stored in the config file
-     */
-    private void sync(Runnable setter, Object value, Object... path) {
-        setter.run();
-        try {
-            VDA.config().node(path).set(value);
-        } catch (SerializationException e) {
-            LOG.reportException(e);
-        }
-        VDA.config().save();
-    }
 }

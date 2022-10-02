@@ -26,4 +26,9 @@ public class PlayerDispatcher extends Module {
         }
     }
 
+    @Override
+    public void saveConfig() {
+
+    }
+
 }

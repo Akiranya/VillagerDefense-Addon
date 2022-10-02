@@ -4,8 +4,10 @@ import cc.mewcraft.villagedefense.VDA;
 import cc.mewcraft.villagedefense.command.command.DispatcherCommand;
 import cc.mewcraft.villagedefense.command.command.InternalCommand;
 import cc.mewcraft.villagedefense.command.command.InventoryCommand;
-import cc.mewcraft.villagedefense.command.command.RewardCommand;
 import cc.mewcraft.villagedefense.command.command.SmartLootCommand;
+import cc.mewcraft.villagedefense.module.InventoryManager;
+import cc.mewcraft.villagedefense.module.PlayerDispatcher;
+import cc.mewcraft.villagedefense.module.SmartLoot;
 import cloud.commandframework.Command;
 import cloud.commandframework.arguments.flags.CommandFlag;
 import cloud.commandframework.brigadier.CloudBrigadierManager;
@@ -64,10 +66,9 @@ public class CommandManager extends PaperCommandManager<CommandSender> {
         // ---- Register all commands ----
         Stream.of(
                 new InternalCommand(plugin, this),
-                new DispatcherCommand(plugin, this, VDA.instance().getPlayerDispatcher()),
-                new InventoryCommand(plugin, this, VDA.instance().getInventoryManager()),
-                new RewardCommand(plugin, this, VDA.instance().getRewardManager()),
-                new SmartLootCommand(plugin, this, VDA.instance().getSmartLoot())
+                new DispatcherCommand(plugin, this, VDA.instance().getModule(PlayerDispatcher.class)),
+                new InventoryCommand(plugin, this, VDA.instance().getModule(InventoryManager.class)),
+                new SmartLootCommand(plugin, this, VDA.instance().getModule(SmartLoot.class))
         ).forEach(AbstractCommand::register);
     }
 

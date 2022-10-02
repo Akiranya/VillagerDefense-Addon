@@ -14,16 +14,21 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 
 import java.util.Random;
 
+@SuppressWarnings("FieldCanBeLocal")
 public class BetterShooter extends Module {
+
+    private final CommentedConfigurationNode root;
     private final float superArrowChance;
 
     public BetterShooter() {
-        superArrowChance = VDA.config().node("better-shooter", "super-arrow-chance").getFloat(0.25F);
+        root = VDA.config().node("better-shooter");
 
-        // Register this listener
+        superArrowChance = root.node("super-arrow-chance").getFloat(0.25F);
+
         registerListener();
     }
 
@@ -65,5 +70,10 @@ public class BetterShooter extends Module {
             // Replace the original projectile with the thrown potion
             event.setProjectile(thrownPotion);
         }
+    }
+
+    @Override
+    public void saveConfig() {
+
     }
 }

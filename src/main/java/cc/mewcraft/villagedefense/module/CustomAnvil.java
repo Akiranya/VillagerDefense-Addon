@@ -5,18 +5,23 @@ import com.destroystokyo.paper.event.block.AnvilDamagedEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerLevelChangeEvent;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 
 /**
  * New Feature: don't consume levels when using anvil and unbroken anvil
  */
+@SuppressWarnings("FieldCanBeLocal")
 public class CustomAnvil extends Module {
 
+    private final CommentedConfigurationNode root;
     private final boolean unbreakable;
     private final boolean withoutCost;
 
     public CustomAnvil() {
-        unbreakable = VDA.config().node("custom-anvil", "unbreakable").getBoolean(true);
-        withoutCost = VDA.config().node("custom-anvil", "without-cost").getBoolean(true);
+        root = VDA.config().node("custom-anvil");
+
+        unbreakable = root.node("unbreakable").getBoolean(true);
+        withoutCost = root.node("without-cost").getBoolean(true);
 
         registerListener();
     }
@@ -37,4 +42,10 @@ public class CustomAnvil extends Module {
             }
         }
     }
+
+    @Override
+    public void saveConfig() {
+
+    }
+
 }

@@ -43,16 +43,18 @@ import static org.bukkit.entity.EntityType.ZOMBIE;
 /**
  * This class improves the interaction with friendly creatures.
  */
+@SuppressWarnings("FieldCanBeLocal")
 @CustomLog
 public class BetterFriends extends Module {
 
+    private final CommentedConfigurationNode root;
     private final int healPotionCount;
     private EnumSet<EntityType> noCollisionEntities;
     private EnumSet<EntityType> villagerHurtEntities;
     private final int villagerHurtGlowingDuration;
 
     public BetterFriends() {
-        CommentedConfigurationNode root = VDA.config().node("better-friends");
+        root = VDA.config().node("better-friends");
 
         // Spawn healing potions when upgrading an entity
         healPotionCount = root.node("healing-potion-count-when-upgrade").getInt(10);
@@ -78,7 +80,6 @@ public class BetterFriends extends Module {
         // How long the villager glows when taken damage
         villagerHurtGlowingDuration = root.node("villager-hurt-glowing-duration").getInt(200);
 
-        // Register this event
         registerListener();
     }
 
@@ -173,4 +174,10 @@ public class BetterFriends extends Module {
             }, 20L, 30L);
         }
     }
+
+    @Override
+    public void saveConfig() {
+
+    }
+
 }

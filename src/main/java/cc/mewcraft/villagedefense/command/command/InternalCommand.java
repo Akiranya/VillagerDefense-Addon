@@ -3,6 +3,7 @@ package cc.mewcraft.villagedefense.command.command;
 import cc.mewcraft.villagedefense.VDA;
 import cc.mewcraft.villagedefense.command.AbstractCommand;
 import cc.mewcraft.villagedefense.command.CommandManager;
+import cc.mewcraft.villagedefense.module.Module;
 import cloud.commandframework.Command;
 import org.bukkit.command.CommandSender;
 
@@ -18,8 +19,10 @@ public class InternalCommand extends AbstractCommand {
 
     @Override
     public void register() {
-        Command<CommandSender> reload = manager
-                .commandBuilder("vde")
+        Command.Builder<CommandSender> builder = manager
+                .commandBuilder("vde");
+
+        Command<CommandSender> reload = builder
                 .permission("vde.command.reload")
                 .literal("reload")
                 .handler(context -> {
@@ -31,6 +34,18 @@ public class InternalCommand extends AbstractCommand {
                 })
                 .build();
 
-        manager.register(List.of(reload));
+        Command<CommandSender> saveConfig = builder
+                .permission("vde.command.saveconfig")
+                .literal("saveconfig")
+                .handler(context -> {
+                    CommandSender sender = context.getSender();
+                    VDA.instance().getAllModules().forEach(Module::saveConfig);
+                    sender.sendMessage(VDA.lang().component("msg_saved_all_config"));
+                }).build();
+
+
+        manager.register(List.of(
+                reload, saveConfig
+        ));
     }
 }

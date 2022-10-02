@@ -1,7 +1,7 @@
-# Internal
 msg_enabled: "开"
 msg_disabled: "关"
-msg_plugin_reloaded: "{plugin} {version} 已重新载入!"
+msg_plugin_reloaded: "{plugin} ({version}) 已重新载入!"
+msg_saved_all_config: "已保存所有配置选项到文件!"
 error_arena_not_found: "没有叫做 {arena} 的房间"
 
 # PlayerDispatcher
@@ -35,5 +35,5 @@ msg_villager_being_hurt: "{damagee} -> 我受伤了，快来人救救我！"
 # RewardManager
 msg_set_total_damage_divisor: "总伤害除数已设置为: {amount}"
 msg_current_total_damage_dealt: "当前造成的总伤害: {amount}"
-msg_damage_summary_when_wave_ends: "&7第 &f{wave-number}&7 波尸潮刚刚波结束了! 各位勇士们总共对僵尸们造成了 &c{damage-done}&7 点伤害...
-  村民们都感激不尽! &6每个&7 村民都决定赠送 &6{bottle-amount}&7 个 &e经验瓶&7 给大家, 快去村民那领取馈赠吧~"
+msg_damage_summary_when_wave_ends: "&7第&f{wave-number}&7波尸潮刚刚波结束了！在刚才的战斗中你共对僵尸造成&c{damage-done}&7点伤害……
+    村民们都感激不尽！为了感谢你，每个活着的村民决定赠予你&f{unit-exp}&7点附魔经验/个硬币！你总共获得&f{total-exp}&7点附魔经验/个硬币！"

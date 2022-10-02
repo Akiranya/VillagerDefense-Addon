@@ -16,4 +16,6 @@ public abstract class Module implements Listener, Terminable {
         HandlerList.unregisterAll(this);
     }
 
+    abstract public void saveConfig();
+
 }

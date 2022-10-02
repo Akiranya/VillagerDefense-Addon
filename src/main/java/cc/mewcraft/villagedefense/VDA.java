@@ -5,13 +5,17 @@ import cc.mewcraft.villagedefense.module.BetterFriends;
 import cc.mewcraft.villagedefense.module.BetterShooter;
 import cc.mewcraft.villagedefense.module.CustomAnvil;
 import cc.mewcraft.villagedefense.module.InventoryManager;
+import cc.mewcraft.villagedefense.module.Module;
 import cc.mewcraft.villagedefense.module.PlayerDispatcher;
 import cc.mewcraft.villagedefense.module.RewardManager;
 import cc.mewcraft.villagedefense.module.SmartKit;
 import cc.mewcraft.villagedefense.module.SmartLoot;
-import lombok.Getter;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import plugily.projects.villagedefense.Main;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class VDA extends ExtendedJavaPlugin {
 
@@ -27,14 +31,7 @@ public class VDA extends ExtendedJavaPlugin {
 
     private Main api;
 
-    @Getter private SmartKit smartKit;
-    @Getter private SmartLoot smartLoot;
-    @Getter private CustomAnvil customAnvil;
-    @Getter private BetterFriends betterFriends;
-    @Getter private BetterShooter betterShooter;
-    @Getter private RewardManager rewardManager;
-    @Getter private InventoryManager inventoryManager;
-    @Getter private PlayerDispatcher playerDispatcher;
+    private Map<Class<? extends Module>, Module> moduleMap;
 
     public static VDA instance() {
         return plugin;
@@ -82,6 +79,16 @@ public class VDA extends ExtendedJavaPlugin {
         initCommands();
     }
 
+    @SuppressWarnings("unchecked")
+    public <M extends Module> M getModule(Class<M> clazz) {
+        return (M) moduleMap.get(clazz);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <M extends Module> Collection<M> getAllModules() {
+        return (Collection<M>) moduleMap.values();
+    }
+
     private void initConfig() {
         config = new MewConfig();
         config.load();
@@ -94,15 +101,15 @@ public class VDA extends ExtendedJavaPlugin {
     }
 
     private void initModules() {
-        smartKit = bind(new SmartKit());
-        smartLoot = bind(new SmartLoot());
-        customAnvil = bind(new CustomAnvil());
-        betterFriends = bind(new BetterFriends());
-        betterShooter = bind(new BetterShooter());
-
-        rewardManager = bind(new RewardManager());
-        inventoryManager = bind(new InventoryManager());
-        playerDispatcher = bind(new PlayerDispatcher());
+        moduleMap = new HashMap<>();
+        moduleMap.put(SmartKit.class, bind(new SmartKit()));
+        moduleMap.put(SmartLoot.class, bind(new SmartLoot()));
+        moduleMap.put(CustomAnvil.class, bind(new CustomAnvil()));
+        moduleMap.put(BetterFriends.class, bind(new BetterFriends()));
+        moduleMap.put(BetterShooter.class, bind(new BetterShooter()));
+        moduleMap.put(RewardManager.class, bind(new RewardManager()));
+        moduleMap.put(InventoryManager.class, bind(new InventoryManager()));
+        moduleMap.put(PlayerDispatcher.class, bind(new PlayerDispatcher()));
     }
 
     private void initLanguage() {

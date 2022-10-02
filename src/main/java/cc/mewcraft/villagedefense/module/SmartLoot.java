@@ -21,9 +21,11 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 
+@SuppressWarnings("FieldCanBeLocal")
 @CustomLog
 public class SmartLoot extends Module {
 
+    private final CommentedConfigurationNode root;
     @Getter private int meleeVanillaExp;
     @Getter private int rangedVanillaExp;
     @Getter private int meleeKitExp;
@@ -32,8 +34,8 @@ public class SmartLoot extends Module {
     private EnumSet<Material> monsterDropWhitelist;
 
     public SmartLoot() {
-        // Configuration values
-        CommentedConfigurationNode root = VDA.config().node("smart-loot");
+        root = VDA.config().node("smart-loot");
+
         meleeVanillaExp = root.node("melee-vanilla-exp").getInt(1);
         meleeKitExp = root.node("melee-kit-exp").getInt(1);
         rangedVanillaExp = root.node("ranged-vanilla-exp").getInt(2);
@@ -50,28 +52,27 @@ public class SmartLoot extends Module {
             LOG.warn("Failed to read config: " + node1.path() + ". Nothing will drop from monsters!", e);
         }
 
-        // Register this listener
         registerListener();
     }
 
     public void setMeleeVanillaExp(int meleeVanillaExp) {
-        sync(() -> this.meleeVanillaExp = meleeVanillaExp, meleeVanillaExp, "smart-loot", "melee-vanilla-exp");
+        this.meleeVanillaExp = meleeVanillaExp;
     }
 
     public void setRangedVanillaExp(int rangedVanillaExp) {
-        sync(() -> this.rangedVanillaExp = rangedVanillaExp, rangedVanillaExp, "smart-loot", "range-vanilla-exp");
+        this.rangedVanillaExp = rangedVanillaExp;
     }
 
     public void setMeleeKitExp(int meleeKitExp) {
-        sync(() -> this.meleeKitExp = meleeKitExp, meleeKitExp, "smart-loot", "melee-kit-exp");
+        this.meleeKitExp = meleeKitExp;
     }
 
     public void setRangedKitExp(int rangedKitExp) {
-        sync(() -> this.rangedKitExp = rangedKitExp, rangedKitExp, "smart-loot", "ranged-kit-exp");
+        this.rangedKitExp = rangedKitExp;
     }
 
     public void setMinimumDamageRequirement(double minimumDamageRequirement) {
-        sync(() -> this.minimumDamageRequirement = minimumDamageRequirement, minimumDamageRequirement, "smart-loot", "minimum-damage-requirement");
+        this.minimumDamageRequirement = minimumDamageRequirement;
     }
 
     /**
@@ -154,20 +155,18 @@ public class SmartLoot extends Module {
         }
     }
 
-    /**
-     * A convenience method to enforce updating values in both class fields and the plugin config file.
-     *
-     * @param setter setter which sets the class fields
-     * @param value  the value to be stored in the config file
-     * @param path   the path to which the value to be stored in the config file
-     */
-    private void sync(Runnable setter, Object value, Object... path) {
-        setter.run();
+    @Override
+    public void saveConfig() {
         try {
-            VDA.config().node(path).set(value);
+            root.node("minimum-damage-requirement").set(minimumDamageRequirement);
+            root.node("melee-vanilla-exp").set(meleeVanillaExp);
+            root.node("melee-kit-exp").set(meleeKitExp);
+            root.node("ranged-vanilla-exp").set(rangedVanillaExp);
+            root.node("ranged-kit-exp").set(rangedKitExp);
         } catch (SerializationException e) {
             LOG.reportException(e);
         }
         VDA.config().save();
     }
+
 }
