@@ -137,7 +137,7 @@ public class SmartLoot extends Module {
                 }
             }
 
-            if (dropReceiver != null) {
+            if (dropReceiver != null && event1.getDroppedExp() > 0) {
                 // Transfer items
                 for (ItemStack item : event1.getDrops()) {
                     dropReceiver.getInventory().addItem(item);
