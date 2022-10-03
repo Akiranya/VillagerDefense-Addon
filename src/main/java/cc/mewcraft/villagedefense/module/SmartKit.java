@@ -104,10 +104,12 @@ public class SmartKit extends Module {
         }
 
         // New Feature: show the kit name above the player's head
-        NametagEdit.getApi().setPrefix(player, VDA.lang().legacy(player,
-                "msg_tag_format",
-                "kit", kit.getName()
-        ));
+        if (VDA.useNametagEdit && showKitAboveHead) {
+            NametagEdit.getApi().setPrefix(player, VDA.lang().legacy(player,
+                    "msg_tag_format",
+                    "kit", kit.getName()
+            ));
+        }
 
         // Bug Fix: set max health to default (20) if currently selected kit doesn't modify max health
         if (kitList.contains(userManager.getUser(player).getKit().getClass()) && !kitList.contains(event.getKit().getClass())) {
@@ -119,6 +121,7 @@ public class SmartKit extends Module {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onArenaEnd(VillageGameStopEvent event) {
+        // New Feature: show the kit name above the player's head
         if (VDA.useNametagEdit && showKitAboveHead) {
             for (Player player : event.getArena().getPlayers()) {
                 NametagEdit.getApi().clearNametag(player);
@@ -135,6 +138,7 @@ public class SmartKit extends Module {
 
     @EventHandler
     public void onPlayerLeave(VillageGameLeaveAttemptEvent event) {
+        // New Feature: show the kit name above the player's head
         if (VDA.useNametagEdit && showKitAboveHead) {
             NametagEdit.getApi().clearNametag(event.getPlayer());
         }
@@ -142,17 +146,17 @@ public class SmartKit extends Module {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
+        // New Feature: show the kit name above the player's head
         if (VDA.useNametagEdit && showKitAboveHead) {
             NametagEdit.getApi().clearNametag(event.getPlayer());
         }
     }
 
-    /**
-     * Bug Fix: Remove all potion effects upon death to prevent some "residual effects" from the player's previous kit.
-     */
     @EventHandler
     public void onPlayerRespawn(PlayerDeathEvent event) {
         Player player = event.getEntity();
+
+        // Bug Fix: Remove all potion effects upon death to prevent some "residual effects" from the player's previous kit.
         for (PotionEffectType effect : PotionEffectType.values()) {
             player.removePotionEffect(effect);
         }
