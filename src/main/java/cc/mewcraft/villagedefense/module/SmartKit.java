@@ -19,6 +19,7 @@ import plugily.projects.villagedefense.arena.ArenaState;
 import plugily.projects.villagedefense.kits.KitRegistry;
 import plugily.projects.villagedefense.kits.basekits.Kit;
 import plugily.projects.villagedefense.kits.basekits.PremiumKit;
+import plugily.projects.villagedefense.kits.free.KnightKit;
 import plugily.projects.villagedefense.kits.free.LightTankKit;
 import plugily.projects.villagedefense.kits.level.HardcoreKit;
 import plugily.projects.villagedefense.kits.level.MediumTankKit;
@@ -57,6 +58,9 @@ public class SmartKit extends Module {
         } else {
             LOG.warn("Cannot replace default kit (KnightKit) because the replacement kit (LightTankKit) is not found");
         }
+
+        // Remove Knight kit
+        KitRegistry.getKits().removeIf(kit -> kit instanceof KnightKit);
 
         levelRequired = root.node("premium-kit-level-required").getInt(12);
         showKitAboveHead = root.node("show-kit-above-head").getBoolean(false);
