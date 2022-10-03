@@ -72,17 +72,13 @@ public class RewardManager extends Module {
                 } catch (ArithmeticException e) {
                     LOG.reportException(e);
                 }
-                VDA.api().getChatManager().formatMessage(
-                        event.getArena(),
-                        VDA.lang().legacy(
-                                "msg_damage_summary_when_wave_ends",
-                                "wave-number", Integer.toString(waveNumber),
-                                "damage-done", Integer.toString((int) damage),
-                                "unit-exp", Integer.toString(unitExpReward),
-                                "total-exp", Integer.toString(totalExpReward)
-                        ),
-                        player
-                );
+                player.sendMessage(VDA.api().getChatManager().getPrefix() + VDA.lang().legacy(
+                        "msg_damage_summary_when_wave_ends",
+                        "wave-number", Integer.toString(waveNumber),
+                        "damage-done", Integer.toString((int) damage),
+                        "unit-exp", Integer.toString(unitExpReward),
+                        "total-exp", Integer.toString(totalExpReward)
+                ));
                 player.giveExp(totalExpReward);
                 VDA.api().getUserManager().getUser(player).addStat(StatsStorage.StatisticType.ORBS, totalExpReward);
                 player.sendMessage(VDA.api().getChatManager().colorMessage(Messages.ORBS_PICKUP).replace("%number%", Integer.toString(totalExpReward)));
