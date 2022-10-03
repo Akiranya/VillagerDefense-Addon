@@ -7,7 +7,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -43,18 +42,20 @@ public class InventoryManager extends Module {
             LOG.error("Failed to read config: " + root.path() + ". Inventory Manager will not work properly!", e);
         }
 
-        registerListener();
+        if (enabled) {
+            registerListener();
+        }
     }
 
     public void enable() {
         enabled = true;
-        VDA.instance().registerListener(this);
+        registerListener();
         LOG.info("InventoryManager is on!");
     }
 
     public void disable() {
         enabled = false;
-        HandlerList.unregisterAll(this);
+        close();
         LOG.info("InventoryManager is off!");
     }
 
