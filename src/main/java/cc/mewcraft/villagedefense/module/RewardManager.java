@@ -5,6 +5,7 @@ import lombok.CustomLog;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.spongepowered.configurate.CommentedConfigurationNode;
@@ -187,13 +188,25 @@ public class RewardManager extends Module {
      */
     @EventHandler
     public void onZombieDamageByPlayer(EntityDamageByEntityEvent event) {
-        if (event.getEntity() instanceof Monster &&
-            event.getDamager() instanceof Player player) {
-            damageStats.compute(player.getUniqueId(),
-                    (uuid, damage) -> damage == null
-                            ? event.getFinalDamage()
-                            : damage + event.getFinalDamage()
-            );
+        if (event.getEntity() instanceof Monster) {
+            Player sourcePlayer = null;
+
+            if (event.getDamager() instanceof Player player) {
+                // Damaged by melee attack
+                sourcePlayer = player;
+            } else if (event.getDamager() instanceof Projectile projectile &&
+                       projectile.getShooter() instanceof Player player) {
+                // Damaged by ranged attack
+                sourcePlayer = player;
+            }
+
+            if (sourcePlayer != null) {
+                damageStats.compute(sourcePlayer.getUniqueId(),
+                        (uuid, damage) -> damage == null
+                                ? event.getFinalDamage()
+                                : damage + event.getFinalDamage()
+                );
+            }
         }
     }
 
