@@ -128,11 +128,16 @@ public class SmartKit extends Module {
             }
         }
 
-        // Bug fix: sometimes player's health not being reset
         for (Player player : event.getArena().getPlayers()) {
+            // Bug fix: sometimes player's health not reset
             Objects.requireNonNull(
                     player.getAttribute(Attribute.GENERIC_MAX_HEALTH), "No such attribute: GENERIC_MAX_HEALTH"
             ).setBaseValue(20D);
+
+            // Bug fix: and potion effects not cleared
+            for (PotionEffectType type : PotionEffectType.values()) {
+                player.removePotionEffect(type);
+            }
         }
     }
 
